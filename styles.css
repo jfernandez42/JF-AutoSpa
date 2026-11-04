@@ -83,7 +83,7 @@ p { margin: 0 0 1em; }
   .nav { display: none; }
   .topbar .btn-small { margin-left: auto; }
 }
-@media (max-width: 400px) { .brand span { display: none; } }
+
 
 /* ---------- Hero: the logo, lit on black ---------- */
 .hero {
@@ -154,6 +154,19 @@ p { margin: 0 0 1em; }
 .menu-row h3 { font-size: 1.3rem; font-weight: 700; font-variation-settings: "wdth" 112; }
 .menu-time { display: block; margin-top: 6px; color: var(--muted); font-size: .9375rem; }
 .menu-desc { margin: 0; color: var(--muted); max-width: 60ch; }
+.menu-group {
+  margin: 44px 0 0; font-size: 1rem; font-weight: 700; color: var(--muted);
+}
+.menu-group + .menu { margin-top: 10px; }
+.tiers {
+  display: grid; grid-template-columns: auto auto; gap: 6px 20px;
+  margin: 0; align-items: baseline; justify-content: end;
+}
+.tiers dt { color: var(--muted); font-size: .9375rem; text-align: right; }
+.tiers dd {
+  margin: 0; font-weight: 800; font-variation-settings: "wdth" 115;
+  font-size: 1.25rem; letter-spacing: -.01em; white-space: nowrap; text-align: right;
+}
 .menu-price {
   font-weight: 800; font-variation-settings: "wdth" 115;
   font-size: 1.8rem; letter-spacing: -.02em; white-space: nowrap; text-align: right;
@@ -169,6 +182,8 @@ p { margin: 0 0 1em; }
   .menu-row { grid-template-columns: 1fr auto; }
   .menu-desc { grid-column: 1 / -1; grid-row: 2; }
   .menu-price { grid-column: 2; grid-row: 1; }
+  .tiers { grid-column: 1 / -1; grid-row: 3; justify-content: stretch; grid-template-columns: 1fr auto; margin-top: 8px; }
+  .tiers dt { text-align: left; }
   .menu-row-feature { margin: 0 -12px; padding: 24px 16px; }
 }
 
@@ -273,3 +288,42 @@ p { margin: 0 0 1em; }
 .thanks { min-height: 70vh; display: grid; place-items: center; text-align: center; padding: 80px 24px; }
 .thanks h1 { font-weight: 750; font-variation-settings: "wdth" 118; font-size: clamp(2.2rem, 5vw, 3.2rem); letter-spacing: -.015em; margin-bottom: 16px; }
 .thanks p { color: var(--muted); max-width: 44ch; margin: 0 auto 28px; }
+
+/* ---------- Add-on checkboxes in the booking form ---------- */
+.addon-picks { border: 0; padding: 0; margin: 0 0 16px; }
+.addon-picks legend { font-weight: 600; font-size: .9375rem; padding: 0; margin-bottom: 8px; }
+.optional { font-weight: 400; color: var(--muted); }
+.checks { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; }
+.checks label {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 0; font-size: .9375rem; cursor: pointer;
+  border-bottom: 1px dashed #d0d1ce;
+}
+.checks label span { margin-left: auto; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.checks input { width: 18px; height: 18px; flex: none; accent-color: var(--ink); margin: 0; }
+@media (max-width: 520px) { .checks { grid-template-columns: 1fr; } }
+
+/* ---------- Call / text / book bar (phones only) ---------- */
+.mobile-bar { display: none; }
+@media (max-width: 760px) {
+  .mobile-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    display: grid; grid-template-columns: 1fr 1fr 1.3fr;
+    background: var(--black);
+    border-top: 1px solid rgba(242,178,76,.3);
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+    gap: 8px;
+  }
+  .mobile-bar a {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 46px; border-radius: var(--radius-btn);
+    text-decoration: none; font-weight: 700; color: #eceded;
+    border: 1px solid rgba(198,201,204,.35);
+  }
+  .mobile-bar .mobile-bar-book { background: var(--amber); border-color: var(--amber); color: var(--black); }
+  body { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+  .topbar .btn-small { display: none; }
+}
+
+/* Keep section titles clear of the sticky top bar when jumping to them */
+section[id] { scroll-margin-top: 70px; }

@@ -3,8 +3,38 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>JF AutoSpa — Mobile Car Detailing</title>
-  <meta name="description" content="JF AutoSpa is a mobile car detailing service in NYC, Nassau and Suffolk counties. We come to your home or office and detail your car on the spot.">
+  <title>Mobile Car Detailing in NYC &amp; Long Island | JF AutoSpa</title>
+  <meta name="description" content="JF AutoSpa is a mobile car detailing service covering all five NYC boroughs and Nassau and Suffolk counties on Long Island. Interior and exterior detailing, paint correction and ceramic coating at your home or office.">
+  <link rel="canonical" href="https://jfautospa.netlify.app/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="JF AutoSpa | Mobile Car Detailing in NYC &amp; Long Island">
+  <meta property="og:description" content="Showroom shine, right in your driveway. Mobile detailing, paint correction and ceramic coating across NYC, Nassau and Suffolk.">
+  <meta property="og:url" content="https://jfautospa.netlify.app/">
+  <meta property="og:image" content="https://jfautospa.netlify.app/logo.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "AutoWash",
+    "name": "JF AutoSpa",
+    "description": "Mobile car detailing, paint correction and ceramic coating. We come to you.",
+    "url": "https://jfautospa.netlify.app/",
+    "image": "https://jfautospa.netlify.app/logo.jpg",
+    "telephone": "+1-516-567-9885",
+    "priceRange": "$50-$1400",
+    "paymentAccepted": "Cash, Venmo, Zelle",
+    "areaServed": [
+      {"@type": "City", "name": "New York City"},
+      {"@type": "AdministrativeArea", "name": "Nassau County, NY"},
+      {"@type": "AdministrativeArea", "name": "Suffolk County, NY"}
+    ],
+    "openingHoursSpecification": [{
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+      "opens": "08:00",
+      "closes": "19:00"
+    }]
+  }
+  </script>
   <link rel="icon" href="favicon.png" type="image/png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta name="theme-color" content="#000000">
@@ -56,7 +86,22 @@
       <div class="wrap">
         <h2>Packages</h2>
         <p class="section-intro">Price depends on the size and condition of your vehicle. We'll confirm your exact price when we confirm your booking.</p>
+        <h3 class="menu-group">Washes &amp; details</h3>
         <ol class="menu">
+          <li class="menu-row">
+            <div class="menu-name">
+              <h3>Exterior Only</h3>
+            </div>
+            <p class="menu-desc">Exterior hand wash and dry, tire shine, and streak-free exterior windows.</p>
+            <span class="menu-price">$50–$70</span>
+          </li>
+          <li class="menu-row">
+            <div class="menu-name">
+              <h3>Interior Only</h3>
+            </div>
+            <p class="menu-desc">Interior vacuum, general wipe-down, and streak-free interior windows.</p>
+            <span class="menu-price">$80–$120</span>
+          </li>
           <li class="menu-row">
             <div class="menu-name">
               <h3>Fresh Start</h3>
@@ -75,9 +120,34 @@
           </li>
         </ol>
 
+        <h3 class="menu-group">Paint correction &amp; protection</h3>
+        <ol class="menu">
+          <li class="menu-row">
+            <div class="menu-name">
+              <h3>Paint Correction</h3>
+            </div>
+            <p class="menu-desc">Machine polishing that removes swirl marks, light scratches and dullness to bring back the paint's gloss. A 1-step polish suits paint in fair shape; a 2-step correction cuts deeper defects first, then refines to a high gloss.</p>
+            <dl class="tiers">
+              <dt>1-step</dt><dd>$300–$500</dd>
+              <dt>2-step</dt><dd>$600–$800</dd>
+            </dl>
+          </li>
+          <li class="menu-row">
+            <div class="menu-name">
+              <h3>Ceramic Coating</h3>
+            </div>
+            <p class="menu-desc">A long-lasting protective layer that makes the paint glossier, easier to wash, and more resistant to dirt, water spots and UV. Pair it with paint correction so the coating locks in a flawless finish.</p>
+            <dl class="tiers">
+              <dt>Coating only</dt><dd>$400–$600</dd>
+              <dt>With 1-step correction</dt><dd>$700–$900</dd>
+              <dt>With 2-step correction</dt><dd>$1,100–$1,400</dd>
+            </dl>
+          </li>
+        </ol>
+
         <div class="addons">
           <h3>Add-ons</h3>
-          <p class="addons-note">Add any of these to either package.</p>
+          <p class="addons-note">Add any of these to any package.</p>
           <ul>
             <li><span>Spray wax sealant</span><span>$30</span></li>
             <li><span>Excessive sand removal</span><span>$40+</span></li>
@@ -122,7 +192,7 @@
       <div class="wrap area">
         <div>
           <h2>Where we go</h2>
-          <p>We come to you anywhere in <strong>New York City</strong> and across Long Island in <strong>Nassau</strong> and <strong>Suffolk</strong> counties. Not sure if you're in range? Put your ZIP code in the booking form and we'll let you know.</p>
+          <p>We come to you anywhere in <strong>New York City</strong>, including Manhattan, Brooklyn, Queens, the Bronx and Staten Island, and across Long Island in <strong>Nassau</strong> and <strong>Suffolk</strong> counties. Not sure if you're in range? Put your ZIP code in the booking form and we'll let you know.</p>
         </div>
         <div class="hours">
           <h3>Hours</h3>
@@ -177,8 +247,15 @@
               <label for="f-package">Package</label>
               <select id="f-package" name="package" required>
                 <option value="">Choose one</option>
+                <option>Exterior Only</option>
+                <option>Interior Only</option>
                 <option>Fresh Start</option>
                 <option>Signature Package</option>
+                <option>Paint Correction (1-step)</option>
+                <option>Paint Correction (2-step)</option>
+                <option>Ceramic Coating only</option>
+                <option>Ceramic Coating + 1-step correction</option>
+                <option>Ceramic Coating + 2-step correction</option>
                 <option>Not sure yet</option>
               </select>
             </div>
@@ -187,6 +264,24 @@
               <input id="f-date" name="date" type="date">
             </div>
           </div>
+          <fieldset class="field addon-picks">
+            <legend>Add-ons <span class="optional">(optional)</span></legend>
+            <input type="hidden" name="addons" id="f-addons" value="">
+            <div class="checks">
+              <label><input type="checkbox" value="Spray wax sealant ($30)"> Spray wax sealant <span>$30</span></label>
+              <label><input type="checkbox" value="Excessive sand removal ($40+)"> Excessive sand removal <span>$40+</span></label>
+              <label><input type="checkbox" value="Ozone odor treatment ($50)"> Ozone odor treatment <span>$50</span></label>
+              <label><input type="checkbox" value="Pet hair removal ($50+)"> Pet hair removal <span>$50+</span></label>
+              <label><input type="checkbox" value="Engine bay detail ($50)"> Engine bay detail <span>$50</span></label>
+              <label><input type="checkbox" value="Iron decon & clay bar ($50-$70)"> Iron decon &amp; clay bar <span>$50–$70</span></label>
+              <label><input type="checkbox" value="Leather shampoo & conditioner ($40-$60)"> Leather shampoo &amp; conditioner <span>$40–$60</span></label>
+              <label><input type="checkbox" value="Steam cleaning ($60)"> Steam cleaning <span>$60</span></label>
+              <label><input type="checkbox" value="Seat & carpet extraction ($80)"> Seat &amp; carpet extraction <span>$80</span></label>
+              <label><input type="checkbox" value="Window ceramic coating ($120)"> Window ceramic coating <span>$120</span></label>
+              <label><input type="checkbox" value="Exterior trim restoration ($150)"> Exterior trim restoration <span>$150</span></label>
+              <label><input type="checkbox" value="Leather ceramic coating ($200-$300)"> Leather ceramic coating <span>$200–$300</span></label>
+            </div>
+          </fieldset>
           <div class="field">
             <label for="f-notes">Anything we should know?</label>
             <textarea id="f-notes" name="notes" rows="3" placeholder="Pet hair, stains, where the car will be parked…"></textarea>
@@ -239,6 +334,26 @@
     </div>
   </footer>
 
-  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  <!-- Call / text / book bar, phones only -->
+  <nav class="mobile-bar" aria-label="Quick contact">
+    <a href="tel:+15165679885">Call</a>
+    <a href="sms:+15165679885">Text</a>
+    <a class="mobile-bar-book" href="#book">Book</a>
+  </nav>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    // Collect ticked add-ons into one "addons" field so they arrive together in Netlify
+    (function () {
+      var hidden = document.getElementById('f-addons');
+      var boxes = document.querySelectorAll('.addon-picks input[type=checkbox]');
+      function sync() {
+        hidden.value = Array.prototype.filter.call(boxes, function (b) { return b.checked; })
+          .map(function (b) { return b.value; }).join(', ') || 'None';
+      }
+      boxes.forEach(function (b) { b.addEventListener('change', sync); });
+      document.querySelector('form[name=booking]').addEventListener('submit', sync);
+    })();
+  </script>
 </body>
 </html>
