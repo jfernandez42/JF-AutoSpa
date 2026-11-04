@@ -404,3 +404,19 @@ section[id] { scroll-margin-top: 70px; }
   .shot:last-child { grid-column: 1 / -1; }
   .shot:last-child img { aspect-ratio: 4 / 3; }
 }
+
+/* ---------- Work clips ---------- */
+.reels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 36px; }
+.reel { position: relative; margin: 0; overflow: hidden; border-radius: var(--radius-panel); background: var(--steel); }
+.reel video { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; object-fit: cover; }
+.reel figcaption {
+  position: absolute; left: 0; right: 0; bottom: 0; pointer-events: none;
+  padding: 36px 14px 12px; font-size: .9rem; font-weight: 600; color: #fff;
+  background: linear-gradient(transparent, rgba(0,0,0,.75));
+}
+.reels + .gallery { margin-top: 12px; }
+@media (max-width: 760px) {
+  .reels { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 28px; }
+  .reels + .gallery { margin-top: 8px; }
+  .reel figcaption { font-size: .8rem; padding: 28px 10px 8px; }
+}

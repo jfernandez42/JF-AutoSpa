@@ -97,6 +97,24 @@
       <div class="wrap">
         <h2>Recent work</h2>
         <p class="section-intro">From daily drivers to Ferraris, every car gets the same care, right where it's parked.</p>
+        <div class="reels">
+          <figure class="reel">
+            <video src="videos/foam-bmw.mp4" poster="videos/foam-bmw.jpg" muted loop playsinline preload="none" width="540" height="960" aria-label="BMW covered in foam with suds sliding off"></video>
+            <figcaption>Foam pre-wash</figcaption>
+          </figure>
+          <figure class="reel">
+            <video src="videos/finished-m3.mp4" poster="videos/finished-m3.jpg" muted loop playsinline preload="none" width="540" height="960" aria-label="Black BMW M3 gleaming after a wash"></video>
+            <figcaption>The finish</figcaption>
+          </figure>
+          <figure class="reel">
+            <video src="videos/maybach-interior.mp4" poster="videos/maybach-interior.jpg" muted loop playsinline preload="none" width="540" height="960" aria-label="Walk through a freshly detailed Mercedes-Maybach interior"></video>
+            <figcaption>Interior detail</figcaption>
+          </figure>
+          <figure class="reel">
+            <video src="videos/wheel-clean.mp4" poster="videos/wheel-clean.jpg" muted loop playsinline preload="none" width="540" height="960" aria-label="Clean wheel with red brake caliper and dressed tire"></video>
+            <figcaption>Wheels & tires</figcaption>
+          </figure>
+        </div>
         <div class="gallery">
           <figure class="shot">
             <img src="photos/ferrari-f8-foam.jpg" alt="Ferrari F8 Tributo covered in thick foam during a pre-wash in a driveway" width="600" height="800" loading="lazy" decoding="async">
@@ -473,6 +491,23 @@
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
+    // Play the work clips only while they're on screen; respect reduced motion
+    (function () {
+      var vids = document.querySelectorAll('.reel video');
+      var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (still || !('IntersectionObserver' in window)) {
+        vids.forEach(function (v) { v.controls = true; });
+        return;
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          var v = en.target;
+          if (en.isIntersecting) { var p = v.play(); if (p && p.catch) p.catch(function () { v.controls = true; }); }
+          else v.pause();
+        });
+      }, { threshold: 0.35 });
+      vids.forEach(function (v) { io.observe(v); });
+    })();
     // Phone menu: open/close, and close after picking a link or pressing Escape
     (function () {
       var btn = document.querySelector('.menu-toggle');
