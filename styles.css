@@ -190,16 +190,22 @@ p { margin: 0 0 1em; }
 .addons { margin-top: 56px; }
 .addons h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; }
 .addons-note { color: var(--muted); font-size: .9375rem; margin: 0 0 12px; }
-.addons ul {
-  list-style: none; padding: 0; margin: 0;
-  display: grid; grid-template-columns: 1fr 1fr; column-gap: 56px;
+.addons ul { list-style: none; padding: 0; margin: 0; max-width: 760px; border-top: 1px solid var(--line); }
+.addons li { border-bottom: 1px solid var(--line); }
+.addons summary {
+  display: flex; align-items: baseline; gap: 16px;
+  padding: 14px 0; cursor: pointer; list-style: none;
 }
-.addons li {
-  display: flex; justify-content: space-between; gap: 16px;
-  padding: 10px 0; border-bottom: 1px dashed #b9bbbd;
+.addons summary::-webkit-details-marker { display: none; }
+.addons summary::before {
+  content: "+"; flex: none; width: 14px;
+  color: var(--muted); font-weight: 700; transition: transform .2s;
 }
-.addons li span:last-child { font-weight: 700; white-space: nowrap; }
-@media (max-width: 760px) { .addons ul { grid-template-columns: 1fr; } }
+.addons details[open] summary::before { transform: rotate(45deg); }
+.addon-price { margin-left: auto; font-weight: 700; white-space: nowrap; }
+.addons summary:hover .addon-name { text-decoration: underline; text-decoration-color: var(--amber); text-underline-offset: 4px; }
+.addons details p { margin: 0 0 16px 30px; color: var(--muted); max-width: 62ch; font-size: .9688rem; }
+@media (prefers-reduced-motion: reduce) { .addons summary::before { transition: none; } }
 
 /* ---------- Steps ---------- */
 .steps {
