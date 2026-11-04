@@ -400,3 +400,7 @@ section[id] { scroll-margin-top: 70px; }
   .how-photo { order: 2; }
   .how-photo img { aspect-ratio: 4 / 3; }
 }
+@media (max-width: 760px) {
+  .shot:last-child { grid-column: 1 / -1; }
+  .shot:last-child img { aspect-ratio: 4 / 3; }
+}
