@@ -416,3 +416,24 @@ section[id] { scroll-margin-top: 70px; }
   .reels + .gallery { margin-top: 8px; }
   .reel figcaption { font-size: .8rem; padding: 28px 10px 8px; }
 }
+
+/* ---------- Ceramic coating ---------- */
+.inline-link { color: inherit; font-weight: 600; text-decoration: underline; text-decoration-color: var(--amber); text-underline-offset: 3px; }
+.ceramic-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; margin-top: 40px; }
+.ceramic-col h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 14px; color: #fff; }
+.ceramic-col p, .ceramic-col li { color: var(--chrome); font-size: .975rem; }
+.ticks { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.ticks li { position: relative; padding-left: 24px; }
+.ticks li::before { content: "✓"; position: absolute; left: 0; color: var(--amber); font-weight: 700; }
+.mini-steps { margin: 0; padding: 0; list-style: none; counter-reset: ms; display: grid; gap: 14px; }
+.mini-steps li { counter-increment: ms; position: relative; padding-left: 34px; }
+.mini-steps li::before {
+  content: counter(ms); position: absolute; left: 0; top: 1px;
+  width: 22px; height: 22px; border-radius: 5px; display: grid; place-items: center;
+  font-size: .8rem; font-weight: 800; color: var(--amber); box-shadow: inset 0 0 0 1px rgba(242,178,76,.5);
+}
+.mini-steps b { color: #fff; }
+.ceramic-note { margin-top: 16px; font-size: .9rem !important; color: var(--chrome-dim) !important; }
+.ceramic-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 44px; padding-top: 28px; border-top: 1px solid rgba(198,201,204,.15); }
+.ceramic-cta span { color: var(--chrome); font-size: .95rem; }
+@media (max-width: 860px) { .ceramic-grid { grid-template-columns: 1fr; gap: 32px; } }
