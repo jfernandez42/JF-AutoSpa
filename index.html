@@ -115,43 +115,74 @@
             <figcaption>Wheels & tires</figcaption>
           </figure>
         </div>
-        <div class="gallery">
+        <div class="gallery" id="gallery">
           <figure class="shot">
             <img src="photos/ferrari-f8-foam.jpg" alt="Ferrari F8 Tributo covered in thick foam during a pre-wash in a driveway" width="600" height="800" loading="lazy" decoding="async">
             <figcaption>Ferrari F8 Tributo, foam pre-wash</figcaption>
           </figure>
           <figure class="shot">
-            <img src="photos/ferrari-purosangue.jpg" alt="Matte blue Ferrari Purosangue with yellow accents after a wash" width="600" height="800" loading="lazy" decoding="async">
-            <figcaption>Ferrari Purosangue</figcaption>
+            <img src="photos/ferrari-296-gts.jpg" alt="White Ferrari 296 GTS with the door open on a brick driveway" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption>Ferrari 296 GTS</figcaption>
           </figure>
           <figure class="shot">
             <img src="photos/rolls-royce-phantom.jpg" alt="Black and silver Rolls-Royce Phantom Drophead Coupé after a detail, with the JF AutoSpa van behind it" width="600" height="800" loading="lazy" decoding="async">
             <figcaption>Rolls-Royce Phantom Drophead</figcaption>
           </figure>
           <figure class="shot">
+            <img src="photos/ferrari-purosangue.jpg" alt="Matte blue Ferrari Purosangue with yellow accents after a wash" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption>Ferrari Purosangue</figcaption>
+          </figure>
+          <figure class="shot more-shot" hidden>
             <img src="photos/aston-martin-dbx-foam.jpg" alt="Aston Martin DBX covered in foam during a pre-wash in a driveway" width="600" height="800" loading="lazy" decoding="async">
             <figcaption>Aston Martin DBX, foam pre-wash</figcaption>
           </figure>
-          <figure class="shot">
-            <img src="photos/mercedes-g63.jpg" alt="Gray Mercedes-AMG G63 after a detail on a gravel driveway" width="600" height="800" loading="lazy" decoding="async">
-            <figcaption>Mercedes-AMG G63</figcaption>
-          </figure>
-          <figure class="shot">
+          <figure class="shot more-shot" hidden>
             <img src="photos/ferrari-296.jpg" alt="Silver Ferrari 296 GTB with black wheels after a detail" width="600" height="800" loading="lazy" decoding="async">
             <figcaption>Ferrari 296 GTB</figcaption>
           </figure>
-          <figure class="shot">
+          <figure class="shot more-shot" hidden>
+            <img src="photos/ferrari-purosangue-white.jpg" alt="Matte white Ferrari Purosangue being washed outside a garage" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption>Ferrari Purosangue</figcaption>
+          </figure>
+          <figure class="shot more-shot" hidden>
+            <img src="photos/mercedes-g63.jpg" alt="Gray Mercedes-AMG G63 after a detail on a gravel driveway" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption>Mercedes-AMG G63</figcaption>
+          </figure>
+          <figure class="shot more-shot" hidden>
+            <img src="photos/ferrari-gtc4lusso.jpg" alt="White Ferrari GTC4Lusso with a black stripe in a garage" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption>Ferrari GTC4Lusso</figcaption>
+          </figure>
+          <figure class="shot more-shot" hidden>
+            <img src="photos/ferrari-575m-foam.jpg" alt="Ferrari 575M Maranello covered in foam" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption>Ferrari 575M, foam pre-wash</figcaption>
+          </figure>
+          <figure class="shot more-shot" hidden>
             <img src="photos/bmw-m3-yellow.jpg" alt="Yellow BMW M3 with a fresh shine in a parking lot" width="600" height="800" loading="lazy" decoding="async">
             <figcaption>BMW M3</figcaption>
           </figure>
-          <figure class="shot">
+          <figure class="shot more-shot" hidden>
+            <img src="photos/porsche-911.jpg" alt="Matte gray Porsche 911 Cabriolet after a wash" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption>Porsche 911 Cabriolet</figcaption>
+          </figure>
+          <figure class="shot more-shot" hidden>
             <img src="photos/ferrari-f430.jpg" alt="Black Ferrari F430 Spider beaded with water on a rooftop lot" width="600" height="800" loading="lazy" decoding="async">
             <figcaption>Ferrari F430 Spider</figcaption>
           </figure>
-          <figure class="shot">
+          <figure class="shot more-shot" hidden>
+            <img src="photos/bmw-m3-gray.jpg" alt="Gray BMW M3 parked on a residential street after a detail" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption>BMW M3</figcaption>
+          </figure>
+          <figure class="shot more-shot" hidden>
             <img src="photos/bmw-i4.jpg" alt="Blue BMW i4 with a deep gloss, the JF AutoSpa van open behind it" width="600" height="800" loading="lazy" decoding="async">
             <figcaption>BMW i4</figcaption>
           </figure>
+          <figure class="shot more-shot" hidden>
+            <img src="photos/bmw-m340i.jpg" alt="Dark blue BMW M340i gleaming at the curb" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption>BMW M340i</figcaption>
+          </figure>
+        </div>
+        <div class="more-wrap">
+          <button class="btn btn-ghost" type="button" id="show-more" aria-controls="gallery" aria-expanded="false">See all 16 photos</button>
         </div>
       </div>
     </section>
@@ -478,6 +509,20 @@
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
+    // Recent work: reveal the rest of the gallery
+    (function () {
+      var btn = document.getElementById('show-more');
+      if (!btn) return;
+      var extra = document.querySelectorAll('.more-shot');
+      var label = btn.textContent;
+      btn.addEventListener('click', function () {
+        var open = btn.getAttribute('aria-expanded') === 'true';
+        extra.forEach(function (f) { f.hidden = open; });
+        btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+        btn.textContent = open ? label : 'Show fewer';
+        if (open) document.getElementById('gallery').scrollIntoView({ block: 'start' });
+      });
+    })();
     // Play the work clips only while they're on screen; respect reduced motion
     (function () {
       var vids = document.querySelectorAll('.reel video');
