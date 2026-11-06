@@ -40,7 +40,7 @@
   <meta name="theme-color" content="#000000">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -50,52 +50,68 @@
       <img class="brand-mark" src="logo-mark.jpg" alt="" width="125" height="96">
       <span>JF AutoSpa</span>
     </a>
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav">
-      <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
-      <span class="menu-label">Menu</span>
-    </button>
     <nav class="nav" id="main-nav" aria-label="Main">
       <a href="#work">Our work</a>
       <a href="#packages">Packages</a>
-      <a href="#how">How it works</a>
-      <a href="#area">Service area</a>
+      <a href="#services">Other services</a>
       <a href="#faq">FAQ</a>
       <a class="nav-book" href="#book">Book a detail</a>
     </nav>
-    <a class="btn btn-small" href="#book">Book a detail</a>
+    <a class="btn btn-small btn-desk" href="#book">Book a detail</a>
     <div class="quick-contact" aria-label="Quick contact">
       <a href="tel:+15165679885">Call</a>
       <a href="sms:+15165679885">Text</a>
       <a class="quick-book" href="#book">Book</a>
     </div>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav">
+      <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+      <span class="menu-label">Menu</span>
+    </button>
   </header>
 
   <main id="top">
 
-    <!-- HERO -->
+    <!-- HERO + HOW IT WORKS -->
     <section class="hero">
       <div class="hero-inner">
         <img class="hero-logo" src="logo.jpg" alt="JF AutoSpa logo" width="840" height="645">
         <div class="hero-copy">
-        <h1>Showroom shine,<br>right in your driveway.</h1>
-        <p class="lede">JF AutoSpa is a mobile detailing service. We pull up with our own water and power, detail your car while you work or relax, and hand the keys back when it's done.</p>
-        <div class="hero-actions">
-          <a class="btn" href="#book">Book a detail</a>
-          <a class="btn btn-ghost" href="tel:+15165679885">Call (516) 567-9885</a>
+          <h1>Showroom shine, right in your driveway.</h1>
+          <p class="lede">JF AutoSpa is a mobile detailing service. We pull up with our own water and power, detail your car while you work or relax, and hand the keys back when it's done.</p>
+          <div class="hero-actions">
+            <a class="btn" href="#book">Book a detail</a>
+            <a class="btn btn-ghost" href="tel:+15165679885">Call (516) 567-9885</a>
+          </div>
+          <ul class="hero-facts">
+            <li>Fully self-contained van</li>
+            <li>NYC, Nassau &amp; Suffolk</li>
+            <li>Home, office or apartment lot</li>
+          </ul>
         </div>
-        <ul class="hero-facts">
-          <li>Fully self-contained van</li>
-          <li>NYC, Nassau &amp; Suffolk</li>
-          <li>Home, office or apartment lot</li>
-        </ul>
-        </div>
+      </div>
+      <div id="how" class="how-strip">
+        <h2 class="visually-hidden">How it works</h2>
+        <ol class="steps">
+          <li>
+            <h3>Book online or call</h3>
+            <p>Pick a package, a day, and where the car will be parked. We confirm the time by text.</p>
+          </li>
+          <li>
+            <h3>We come to you</h3>
+            <p>Our van carries its own water, power, and products. You don't need to be outside. Just leave us the keys.</p>
+          </li>
+          <li>
+            <h3>Drive off clean</h3>
+            <p>We walk you around the car when we're done. Pay with cash, Venmo, or Zelle.</p>
+          </li>
+        </ol>
       </div>
     </section>
 
-    <!-- RECENT WORK -->
+    <!-- OUR WORK -->
     <section id="work" class="section section-dark">
       <div class="wrap">
-        <h2>Recent work</h2>
+        <h2>Our work</h2>
         <p class="section-intro">From daily drivers to Ferraris, every car gets the same care, right where it's parked.</p>
         <div class="reels">
           <figure class="reel">
@@ -187,74 +203,80 @@
       </div>
     </section>
 
-    <!-- PACKAGES -->
+    <!-- CLEANING PACKAGES -->
     <section id="packages" class="section">
       <div class="wrap">
-        <h2>Packages</h2>
-        <p class="section-intro">Price depends on the size and condition of your vehicle. We'll give you an exact price when we confirm your booking.</p>
-        <h3 class="menu-group">Washes &amp; details</h3>
-        <ol class="menu">
-          <li class="menu-row">
-            <div class="menu-name">
+        <div class="section-head">
+          <h2>Packages</h2>
+          <p class="section-intro">Price depends on the size and condition of your vehicle. We'll give you an exact price when we confirm your booking.</p>
+        </div>
+        <div class="pkg-grid">
+          <article class="pkg">
+            <div class="pkg-head">
               <h3>Exterior Only</h3>
+              <p class="pkg-meta"><span>Outside only</span><span>&nbsp;</span></p>
             </div>
-            <p class="menu-desc">Exterior hand wash and dry, tire shine, and streak-free exterior windows.</p>
-            <span class="menu-price">$50–$70</span>
-          </li>
-          <li class="menu-row">
-            <div class="menu-name">
+            <p class="pkg-price">$50–$70</p>
+            <ul class="ticks">
+              <li>Exterior hand wash and dry</li>
+              <li>Tire shine</li>
+              <li>Streak-free exterior windows</li>
+            </ul>
+          </article>
+          <article class="pkg">
+            <div class="pkg-head">
               <h3>Interior Only</h3>
+              <p class="pkg-meta"><span>Inside only</span><span>&nbsp;</span></p>
             </div>
-            <p class="menu-desc">Interior vacuum, general wipe-down, and streak-free interior windows.</p>
-            <span class="menu-price">$80–$120</span>
-          </li>
-          <li class="menu-row">
-            <div class="menu-name">
+            <p class="pkg-price">$80–$120</p>
+            <ul class="ticks">
+              <li>Interior vacuum</li>
+              <li>General wipe-down</li>
+              <li>Streak-free interior windows</li>
+            </ul>
+          </article>
+          <article class="pkg">
+            <div class="pkg-head">
               <h3>Fresh Start</h3>
-              <span class="menu-time">Maintenance detail, 1½–2 hours</span>
+              <p class="pkg-meta"><span>Maintenance detail</span><span>1½–2 hours</span></p>
             </div>
-            <p class="menu-desc">Exterior hand wash and dry, tire shine, interior vacuum, general interior wipe-down, and streak-free windows inside and out.</p>
-            <span class="menu-price">$100–$150</span>
-          </li>
-          <li class="menu-row menu-row-feature">
-            <div class="menu-name">
+            <p class="pkg-price">$100–$150</p>
+            <ul class="ticks">
+              <li>Exterior hand wash and dry</li>
+              <li>Tire shine</li>
+              <li>Interior vacuum</li>
+              <li>General interior wipe-down</li>
+              <li>Streak-free windows inside and out</li>
+            </ul>
+          </article>
+          <article class="pkg pkg-feature">
+            <div class="pkg-head">
               <h3>Signature Package</h3>
-              <span class="menu-time">Full detail, 2½–3½ hours</span>
+              <p class="pkg-meta"><span>Full detail</span><span>2½–3½ hours</span></p>
             </div>
-            <p class="menu-desc">Everything in Fresh Start, plus an exterior pre-wash, door jambs, a deep clean of tires and wheels, steam cleaning, an air blowout of vents, seams, and crevices, and a deep interior clean.</p>
-            <span class="menu-price">$180–$240</span>
-          </li>
-        </ol>
+            <p class="pkg-price">$180–$240</p>
+            <p class="pkg-lead">Everything in Fresh Start, plus:</p>
+            <ul class="ticks">
+              <li>Exterior pre-wash</li>
+              <li>Door jambs</li>
+              <li>Deep clean of tires and wheels</li>
+              <li>Steam cleaning</li>
+              <li>Air blowout of vents, seams, and crevices</li>
+              <li>Deep interior clean</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
 
-        <h3 class="menu-group">Paint correction &amp; protection</h3>
-        <ol class="menu">
-          <li class="menu-row">
-            <div class="menu-name">
-              <h3>Paint Correction</h3>
-            </div>
-            <p class="menu-desc">Machine polishing that removes swirl marks, light scratches, and dullness to bring back the paint's gloss. A 1-step polish suits paint in fair shape; a 2-step correction removes deeper defects first, then refines the finish to a high gloss.</p>
-            <dl class="tiers">
-              <dt>1-step</dt><dd>$300–$500</dd>
-              <dt>2-step</dt><dd>$600–$800</dd>
-            </dl>
-          </li>
-          <li class="menu-row">
-            <div class="menu-name">
-              <h3>Ceramic Coating</h3>
-            </div>
-            <p class="menu-desc">A long-lasting protective layer that makes the paint glossier, easier to wash, and more resistant to dirt, water spots, and UV. Pair it with paint correction so the coating locks in a flawless finish. <a class="inline-link" href="#ceramic">How ceramic coating works</a></p>
-            <dl class="tiers">
-              <dt>Coating only</dt><dd>$400–$600</dd>
-              <dt>With 1-step correction</dt><dd>$700–$900</dd>
-              <dt>With 2-step correction</dt><dd>$1,100–$1,400</dd>
-            </dl>
-          </li>
-        </ol>
-
-        <div class="addons">
-          <h3>Add-ons</h3>
-          <p class="addons-note">Add any of these to any package. Tap an add-on to see what it includes.</p>
-          <ul>
+    <!-- ADD-ONS -->
+    <section id="addons" class="section section-tint">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Add-ons</h2>
+          <p class="section-intro">Add any of these to any package. Tap an add-on to see what it includes.</p>
+        </div>
+        <ul class="addon-list">
             <li>
               <details>
                 <summary><span class="addon-name">Spray wax sealant</span><span class="addon-price">$30</span></summary>
@@ -334,15 +356,38 @@
               </details>
             </li>
           </ul>
-        </div>
       </div>
     </section>
 
-    <!-- CERAMIC COATING -->
-    <section id="ceramic" class="section section-dark">
+    <!-- OTHER SERVICES: PAINT CORRECTION + CERAMIC COATING -->
+    <section id="services" class="section section-dark">
       <div class="wrap">
-        <h2>Ceramic coating</h2>
-        <p class="section-intro">A ceramic coating is a liquid layer that bonds to your paint and hardens into a clear, slick shell. We use professional coatings from Gyeon and Adam's Polishes, and we'll recommend the right one for your car and how you drive it.</p>
+        <div class="section-head">
+          <h2>Paint correction and ceramic coating</h2>
+          <p class="section-intro">Restore the paint, then protect it. Quoted after we see the car.</p>
+        </div>
+        <div class="svc-grid">
+          <article class="svc">
+            <h3>Paint Correction</h3>
+            <p>Machine polishing that removes swirl marks, light scratches, and dullness to bring back the paint's gloss. A 1-step polish suits paint in fair shape; a 2-step correction removes deeper defects first, then refines the finish to a high gloss.</p>
+            <dl class="tiers">
+              <div><dt>1-step correction</dt><dd>$300–$500</dd></div>
+              <div><dt>2-step correction</dt><dd>$600–$800</dd></div>
+            </dl>
+          </article>
+          <article class="svc">
+            <h3>Ceramic Coating</h3>
+            <p>A long-lasting protective layer that makes the paint glossier, easier to wash, and more resistant to dirt, water spots, and UV. Pair it with paint correction so the coating locks in a flawless finish. We use professional coatings from Gyeon and Adam's Polishes.</p>
+            <dl class="tiers">
+              <div><dt>Coating only</dt><dd>$400–$600</dd></div>
+              <div><dt>With 1-step correction</dt><dd>$700–$900</dd></div>
+              <div><dt>With 2-step correction</dt><dd>$1,100–$1,400</dd></div>
+            </dl>
+          </article>
+        </div>
+
+        <div id="ceramic" class="coating-guide">
+          <h3 class="sub-head">How ceramic coating works</h3>
         <div class="ceramic-grid">
           <div class="ceramic-col">
             <h3>What it does</h3>
@@ -373,48 +418,10 @@
             </ul>
           </div>
         </div>
+        </div>
         <div class="ceramic-cta">
           <a class="btn" href="#book">Book a coating</a>
           <span>Coatings from $400. Packages with paint correction from $700.</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- HOW IT WORKS (a real sequence, so it's numbered) -->
-    <section id="how" class="section section-tint">
-      <div class="wrap">
-        <h2>How it works</h2>
-        <ol class="steps">
-          <li>
-            <h3>Book online or call</h3>
-            <p>Pick a package, a day, and where the car will be parked. We confirm the time by text.</p>
-          </li>
-          <li>
-            <h3>We come to you</h3>
-            <p>Our van carries its own water, power, and products. You don't need to be outside. Just leave us the keys.</p>
-          </li>
-          <li>
-            <h3>Drive off clean</h3>
-            <p>We walk you around the car when we're done. Pay with cash, Venmo, or Zelle.</p>
-          </li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- SERVICE AREA + HOURS -->
-    <section id="area" class="section">
-      <div class="wrap area">
-        <div>
-          <h2>Where we go</h2>
-          <p>We come to you anywhere in <strong>New York City</strong>, including Manhattan, Brooklyn, Queens, the Bronx, and Staten Island, and across Long Island in <strong>Nassau</strong> and <strong>Suffolk</strong> counties. Not sure if you're in range? Put your ZIP code in the booking form and we'll let you know.</p>
-        </div>
-        <div class="hours">
-          <h3>Hours</h3>
-          <dl>
-            <dt>Monday–Saturday</dt><dd>8am–7pm</dd>
-            <dt>Sunday</dt><dd>Closed</dd>
-          </dl>
-          <p class="note">Rain or shine. Prefer a dry day? We'll reschedule.</p>
         </div>
       </div>
     </section>
@@ -509,7 +516,17 @@
     <!-- FAQ -->
     <section id="faq" class="section">
       <div class="wrap faq">
-        <h2>Questions</h2>
+        <div class="section-head">
+          <h2>Questions</h2>
+        </div>
+        <details>
+          <summary>What are your hours?</summary>
+          <p>Monday through Saturday, 8am to 7pm. Closed Sunday. We work rain or shine; if you'd rather wait for a dry day, we'll reschedule.</p>
+        </details>
+        <details>
+          <summary>What areas do you serve?</summary>
+          <p>All five NYC boroughs, plus Nassau and Suffolk counties on Long Island. Not sure if you're in range? Put your ZIP code in the booking form and we'll let you know.</p>
+        </details>
         <details>
           <summary>Do I need to provide water or electricity?</summary>
           <p>No. The van carries its own water tank and generator, so we can work in a driveway, in a parking lot, or on the street.</p>
@@ -559,7 +576,7 @@
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
-    // Recent work: reveal the rest of the gallery
+    // Our work: reveal the rest of the gallery
     (function () {
       var btn = document.getElementById('show-more');
       if (!btn) return;
