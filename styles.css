@@ -445,3 +445,13 @@ section[id], div[id] { scroll-margin-top: 76px; }
 .mech-list span { color: var(--chrome-dim); font-size: .9375rem; line-height: 1.5; }
 @media (max-width: 860px) { .mech { grid-template-columns: 1fr; gap: 28px; margin-top: 48px; padding-top: 40px; } }
 @media (max-width: 520px) { .mech-list { grid-template-columns: 1fr; } }
+
+/* Keep the full menu on one line at in-between widths */
+.nav a { white-space: nowrap; }
+@media (max-width: 1180px) and (min-width: 761px) {
+  .topbar { gap: 18px; }
+  .brand span { display: none; }
+  .nav { gap: 18px; }
+  .nav a { font-size: .875rem; }
+  .btn-desk { min-height: 38px; padding: 0 .9em; font-size: .875rem; white-space: nowrap; }
+}
