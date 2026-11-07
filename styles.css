@@ -431,3 +431,17 @@ section[id], div[id] { scroll-margin-top: 76px; }
 .process-col .mini-steps li::before { color: #9a6410; box-shadow: inset 0 0 0 1.5px #d2a457; }
 .process-col .btn { margin-top: 8px; }
 @media (max-width: 860px) { .process-steps { grid-template-columns: 1fr; gap: 36px; margin-top: 40px; padding-top: 36px; } }
+
+/* ---------- Mobile mechanical services ---------- */
+.mech { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 48px; margin-top: 64px; padding-top: 48px; border-top: 1px solid var(--line-dark); align-items: start; }
+.mech-intro .sub-head { color: var(--white); margin-bottom: 14px; }
+.mech-intro p { color: var(--chrome); font-size: 1rem; }
+.mech-terms { list-style: none; margin: 18px 0 26px; padding: 0; display: grid; gap: 8px; }
+.mech-terms li { position: relative; padding-left: 24px; color: var(--chrome); font-weight: 600; font-size: .9688rem; }
+.mech-terms li::before { content: "✓"; position: absolute; left: 0; color: var(--amber); font-weight: 800; }
+.mech-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.mech-list li { background: var(--carbon); border: 1px solid var(--line-dark); border-radius: var(--radius-panel); padding: 18px 20px; display: flex; flex-direction: column; gap: 4px; }
+.mech-list b { font-family: var(--font-display); font-weight: 600; font-size: 1.0313rem; color: var(--white); }
+.mech-list span { color: var(--chrome-dim); font-size: .9375rem; line-height: 1.5; }
+@media (max-width: 860px) { .mech { grid-template-columns: 1fr; gap: 28px; margin-top: 48px; padding-top: 40px; } }
+@media (max-width: 520px) { .mech-list { grid-template-columns: 1fr; } }
