@@ -41,7 +41,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261112b">
+  <link rel="stylesheet" href="styles.css?v=20261112c">
 </head>
 <body>
 
@@ -62,13 +62,13 @@
         </div>
       </div>
       <a href="#faq">FAQ</a>
-      <a class="nav-book" href="https://squareup.com/appointments/book/LY1D0XNS8Z96M" target="_blank" rel="noopener">Book a Detail</a>
+      <a class="nav-book" href="book.html">Book a Detail</a>
     </nav>
-    <a class="btn btn-small btn-desk" href="https://squareup.com/appointments/book/LY1D0XNS8Z96M" target="_blank" rel="noopener">Book a Detail</a>
+    <a class="btn btn-small btn-desk" href="book.html">Book a Detail</a>
     <div class="quick-contact" aria-label="Quick contact">
       <a href="tel:+15165679885">Call</a>
       <a href="sms:+15165679885">Text</a>
-      <a class="quick-book" href="https://squareup.com/appointments/book/LY1D0XNS8Z96M" target="_blank" rel="noopener">Book</a>
+      <a class="quick-book" href="book.html">Book</a>
     </div>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav">
       <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
@@ -87,7 +87,7 @@
           <h1>Showroom shine, right in your driveway.</h1>
           <p class="lede">JF AutoSpa is a mobile detailing service. We pull up with our own water and power, detail your car while you work or relax, and hand the keys back when it's done.</p>
           <div class="hero-actions">
-            <a class="btn" href="https://squareup.com/appointments/book/LY1D0XNS8Z96M" target="_blank" rel="noopener">Book a detail</a>
+            <a class="btn" href="book.html">Book a detail</a>
             <a class="btn btn-ghost" href="tel:+15165679885">Call (516) 567-9885</a>
           </div>
           <ul class="hero-facts">
@@ -232,7 +232,7 @@
             <h3>Made for Your Car</h3>
             <p>No two cars come to us in the same condition. A weekly driver needs something different from a family SUV after a beach trip or a weekend exotic. We look the car over first and adjust the process to what it needs, from pet hair and sand to stains, odors, and paint that needs correcting.</p>
             <p>Before we leave, we walk around the car with you so you can see the results for yourself.</p>
-            <a class="btn" href="https://squareup.com/appointments/book/LY1D0XNS8Z96M" target="_blank" rel="noopener">Book a detail</a>
+            <a class="btn" href="book.html">Book a detail</a>
           </div>
         </div>
       </div>
@@ -257,7 +257,7 @@
               <li>Tire shine</li>
               <li>Streak-free exterior windows</li>
             </ul>
-            <a class="btn pkg-btn" href="https://squareup.com/appointments/book/LY1D0XNS8Z96M" target="_blank" rel="noopener">Book This Package</a>
+            <a class="btn pkg-btn" href="book.html?pkg=exterior">Book This Package</a>
           </article>
           <article class="pkg">
             <div class="pkg-head">
@@ -270,7 +270,7 @@
               <li>General wipe-down</li>
               <li>Streak-free interior windows</li>
             </ul>
-            <a class="btn pkg-btn" href="https://squareup.com/appointments/book/LY1D0XNS8Z96M" target="_blank" rel="noopener">Book This Package</a>
+            <a class="btn pkg-btn" href="book.html?pkg=interior">Book This Package</a>
           </article>
           <article class="pkg">
             <div class="pkg-head">
@@ -285,7 +285,7 @@
               <li>General interior wipe-down</li>
               <li>Streak-free windows inside and out</li>
             </ul>
-            <a class="btn pkg-btn" href="https://squareup.com/appointments/book/LY1D0XNS8Z96M" target="_blank" rel="noopener">Book This Package</a>
+            <a class="btn pkg-btn" href="book.html?pkg=fresh">Book This Package</a>
           </article>
           <article class="pkg pkg-feature">
             <div class="pkg-head">
@@ -302,7 +302,7 @@
               <li>Air blowout of vents, seams, and crevices</li>
               <li>Deep interior clean</li>
             </ul>
-            <a class="btn pkg-btn" href="https://squareup.com/appointments/book/LY1D0XNS8Z96M" target="_blank" rel="noopener">Book This Package</a>
+            <a class="btn pkg-btn" href="book.html?pkg=signature">Book This Package</a>
           </article>
         </div>
       </div>
@@ -488,14 +488,14 @@
       </div>
     </section>
 
-    <!-- BOOKING: Square Appointments link + FormSubmit quote/request form -->
+    <!-- BOOKING: online booking (book.html) + FormSubmit quote/request form -->
     <section id="book" class="section section-paint">
       <div class="wrap book">
         <div class="book-copy">
           <h2>Book a Detail</h2>
           <p class="today today-book" data-today hidden><span class="today-dot" aria-hidden="true"></span><span>Today we're in <b data-today-town></b>. Nearby? Ask about a same-day slot.</span></p>
           <p>Pick your package, add-ons, and a time that works for you. It takes about a minute.</p>
-          <a class="btn book-online" href="https://squareup.com/appointments/book/LY1D0XNS8Z96M" target="_blank" rel="noopener">Pick a Time Online</a>
+          <a class="btn book-online" href="book.html">Pick a Time Online</a>
           <p>Need a quote for paint correction, ceramic coating, or mechanical work, or rather we text you? Send a request with the form and we'll get back to you within the hour.</p>
           <p>Prefer to talk? Call or text <a href="tel:+15165679885">(516) 567-9885</a>.</p>
         </div>
@@ -706,31 +706,11 @@
     })();
   </script>
   <script>
-    /* "Today we're in" badge. Joe submits his town with a Google Form; the
-       responses sheet is published as CSV. Shows only entries made today
-       (New York time). Entering "off" hides it. No deploy needed. */
+    /* "Today we're in" badge. Joe sets the town on admin.html; it shows only on that day. */
     (function () {
-      var CSV = 'TODAY_CSV_URL';
-      if (CSV.indexOf('http') !== 0) return;
-      function rows(text) {
-        return text.trim().split(/\r?\n/).map(function (line) {
-          var out = [], cur = '', q = false;
-          for (var i = 0; i < line.length; i++) {
-            var c = line[i];
-            if (q) { if (c === '"' && line[i + 1] === '"') { cur += '"'; i++; } else if (c === '"') q = false; else cur += c; }
-            else if (c === '"') q = true; else if (c === ',') { out.push(cur); cur = ''; } else cur += c;
-          }
-          out.push(cur); return out;
-        });
-      }
-      fetch(CSV, { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (text) {
-        var data = rows(text).filter(function (r) { return r[0] && /\d/.test(r[0]) && (r[1] || '').trim(); });
-        var last = data[data.length - 1]; if (!last) return;
-        var d = last[0].split(' ')[0].split('/').map(Number);
-        var t = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York' }).format(new Date()).split('/').map(Number);
-        var town = last[1].trim();
-        if (d[0] !== t[0] || d[1] !== t[1] || d[2] !== t[2] || /^(off|-|none|done)$/i.test(town)) return;
-        document.querySelectorAll('[data-today-town]').forEach(function (el) { el.textContent = town; });
+      fetch('/api/today').then(function (r) { return r.json(); }).then(function (d) {
+        if (!d || !d.town) return;
+        document.querySelectorAll('[data-today-town]').forEach(function (el) { el.textContent = d.town; });
         document.querySelectorAll('[data-today]').forEach(function (el) { el.hidden = false; });
       }).catch(function () {});
     })();

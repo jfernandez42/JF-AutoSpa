@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Bookings | JF AutoSpa</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="theme-color" content="#000000">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20261112c">
+  <link rel="stylesheet" href="book.css?v=20261112e">
+</head>
+<body class="bk-body" style="padding-bottom:40px">
+  <header class="topbar bk-top">
+    <a class="brand" href="index.html"><img class="brand-mark" src="logo-mark.jpg" alt="" width="125" height="96"><span>JF AutoSpa</span></a>
+    <div class="bk-top-links"><a href="book.html">Booking page</a><a href="#" id="logout" hidden>Log out</a></div>
+  </header>
+
+  <main class="bk-main">
+    <div class="bk-wrap">
+      <div class="bk-head"><h1>Bookings</h1><p class="bk-sub">Owner page. Only works with your passcode.</p></div>
+      <p class="bk-alert" id="alert" role="alert" hidden></p>
+
+      <!-- login -->
+      <form class="ad-card" id="login">
+        <h2>Enter your passcode</h2>
+        <div class="ad-row">
+          <div class="field"><label for="pass">Passcode</label><input id="pass" type="password" autocomplete="current-password" required></div>
+          <button class="btn" type="submit">Open</button>
+        </div>
+      </form>
+
+      <div id="app" hidden>
+        <!-- today's town -->
+        <form class="ad-card" id="town-form">
+          <h2>Today we're in</h2>
+          <p class="bk-note" style="margin:0 0 10px">Shows on the website until midnight. Town only, never a street.</p>
+          <div class="ad-row">
+            <div class="field"><label for="town" class="visually-hidden">Town</label><input id="town" placeholder="e.g. Garden City" maxlength="40"></div>
+            <button class="btn" type="submit">Show on site</button>
+            <button class="bk-back" style="color:var(--ink);border-color:var(--line)" type="button" id="town-clear">Hide</button>
+          </div>
+          <p class="ad-msg" id="town-msg"></p>
+        </form>
+
+        <!-- schedule -->
+        <div class="ad-tabs" role="tablist">
+          <button type="button" class="is-on" data-view="upcoming">Upcoming</button>
+          <button type="button" data-view="past">Past 2 weeks</button>
+        </div>
+        <div id="list"><p class="ad-empty">Loading…</p></div>
+
+        <!-- block time -->
+        <form class="ad-card" id="block-form" style="margin-top:26px">
+          <h2>Block off time</h2>
+          <p class="bk-note" style="margin:0 0 12px">For days off, personal time, or jobs booked by phone. Customers won't be able to book over it.</p>
+          <div class="field-row">
+            <div class="field"><label for="b-date">Date</label><input id="b-date" type="date" required></div>
+            <div class="field"><label for="b-label">Label</label><input id="b-label" placeholder="Day off, or customer name" maxlength="100"></div>
+          </div>
+          <label style="display:flex;gap:10px;align-items:center;font-weight:700;margin:0 0 14px"><input type="checkbox" id="b-all" checked style="width:18px;height:18px;accent-color:var(--ink)"> All day</label>
+          <div class="field-row" id="b-times" hidden>
+            <div class="field"><label for="b-start">From</label><input id="b-start" type="time" value="08:00" step="900"></div>
+            <div class="field"><label for="b-end">To</label><input id="b-end" type="time" value="12:00" step="900"></div>
+          </div>
+          <button class="btn" type="submit">Block it</button>
+          <p class="ad-msg" id="block-msg"></p>
+        </form>
+
+        <!-- calendar feed -->
+        <div class="ad-card">
+          <h2>Bookings in your phone's calendar</h2>
+          <p class="bk-note" style="margin:0 0 10px">Tap below on your iPhone and choose Subscribe. New bookings show up in your Calendar app automatically (it can take up to an hour to refresh).</p>
+          <a class="btn" id="cal-sub" href="#">Subscribe in Calendar</a>
+          <div class="ad-copy" style="margin-top:12px"><input id="cal-url" readonly aria-label="Calendar link"><button class="bk-back" style="color:var(--ink);border-color:var(--line)" type="button" id="cal-copy">Copy</button></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+  (function () {
+    var $ = function (id) { return document.getElementById(id); };
+    var KEY = '', data = null, view = 'upcoming';
+    try { KEY = localStorage.getItem('jf-admin-key') || ''; } catch (e) {}
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function t12(min) { var h = Math.floor(min / 60), m = String(min % 60).padStart(2, '0'); return ((h + 11) % 12 + 1) + ':' + m + (h < 12 ? ' AM' : ' PM'); }
+    function dlabel(d) { var p = d.split('-'); return new Date(+p[0], p[1] - 1, +p[2]).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }); }
+    function alertMsg(t) { $('alert').textContent = t || ''; $('alert').hidden = !t; }
+    function api(path, body) {
+      return fetch('/api/admin/' + path, {
+        method: body ? 'POST' : 'GET',
+        headers: { 'x-admin-key': KEY, 'content-type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined
+      }).then(function (r) { return r.json().then(function (j) { if (!r.ok) { var e = new Error(j.error || 'Error'); e.status = r.status; throw e; } return j; }); });
+    }
+
+    function load() {
+      return api('schedule').then(function (d) {
+        data = d; $('login').hidden = true; $('app').hidden = false; $('logout').hidden = false; alertMsg('');
+        $('town').value = d.town || '';
+        $('town-msg').textContent = d.town ? 'Showing: Today we\'re in ' + d.town : 'Not showing today.';
+        var url = location.origin + '/api/calendar.ics?key=' + encodeURIComponent(KEY);
+        $('cal-url').value = url; $('cal-sub').href = url.replace(/^https?:/, 'webcal:');
+        if (!$('b-date').value) $('b-date').value = d.today;
+        render();
+      }).catch(function (e) {
+        if (e.status === 401) { try { localStorage.removeItem('jf-admin-key'); } catch (x) {} KEY = ''; $('login').hidden = false; $('app').hidden = true; alertMsg('Wrong passcode, or the passcode isn\'t set up in Netlify yet.'); }
+        else alertMsg('Couldn\'t load bookings. Check your connection and refresh.');
+      });
+    }
+
+    function render() {
+      var today = data.today;
+      var list = data.entries.filter(function (e) { return view === 'upcoming' ? e.date >= today : e.date < today; });
+      if (view === 'past') list.reverse();
+      if (!list.length) { $('list').innerHTML = '<p class="ad-empty" style="margin-top:16px">' + (view === 'upcoming' ? 'No upcoming bookings yet.' : 'Nothing in the past 2 weeks.') + '</p>'; return; }
+      var h = '', cur = '';
+      list.forEach(function (e) {
+        if (e.date !== cur) {
+          cur = e.date;
+          var count = list.filter(function (x) { return x.date === cur && x.type === 'booking' && x.status !== 'cancelled'; }).length;
+          h += '<h3 class="ad-day">' + (cur === today ? 'Today · ' : '') + dlabel(cur) + (count ? ' <small>· ' + count + ' job' + (count > 1 ? 's' : '') + '</small>' : '') + '</h3>';
+        }
+        var cancelled = e.status === 'cancelled';
+        if (e.type === 'block') {
+          h += '<div class="ad-job is-block' + (cancelled ? ' is-cancelled' : '') + '"><div class="ad-job-top"><b>' + esc(e.label) + (cancelled ? ' (removed)' : '') + '</b><span class="ad-time">' +
+            (e.start === 0 && e.end >= 1440 ? 'All day' : t12(e.start) + '–' + t12(e.end)) + '</span></div>' +
+            (cancelled ? '' : '<div class="ad-acts"><button type="button" class="ad-cancel" data-cancel="' + e.id + '" data-what="this block">Remove</button></div>') + '</div>';
+          return;
+        }
+        var addr = e.address + ', ' + e.zip;
+        h += '<div class="ad-job' + (cancelled ? ' is-cancelled' : '') + '"><div class="ad-job-top"><b>' + esc(e.name) + (cancelled ? ' (cancelled)' : '') + '</b>' +
+          '<span class="ad-time">' + t12(e.start) + '–' + t12(e.end) + '</span></div>' +
+          '<p><strong>' + esc(e.pkgName) + '</strong>' + (e.addonNames && e.addonNames.length ? ' + ' + esc(e.addonNames.join(', ')) : '') +
+          ' · <strong>$' + e.lo + '–$' + e.hi + (e.plus ? '+' : '') + '</strong></p>' +
+          '<p>' + esc(e.vehicle) + ' · ' + esc(e.parking || '') + ' · Inside: ' + esc(e.condition || '-') + '</p>' +
+          '<p>' + esc(addr) + '</p>' +
+          (e.notes ? '<p>Notes: ' + esc(e.notes) + '</p>' : '') +
+          '<p>' + esc(e.phone) + (e.email ? ' · ' + esc(e.email) : '') + '</p>' +
+          (cancelled ? '' : '<div class="ad-acts"><a href="tel:' + esc(e.phone.replace(/[^\d+]/g, '')) + '">Call</a><a href="sms:' + esc(e.phone.replace(/[^\d+]/g, '')) + '">Text</a>' +
+          '<a href="https://maps.apple.com/?daddr=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener">Directions</a>' +
+          '<button type="button" class="ad-cancel" data-cancel="' + e.id + '" data-what="' + esc(e.name) + '\'s booking">Cancel</button></div>') +
+          '</div>';
+      });
+      $('list').innerHTML = h;
+    }
+
+    $('login').addEventListener('submit', function (ev) {
+      ev.preventDefault(); KEY = $('pass').value.trim();
+      try { localStorage.setItem('jf-admin-key', KEY); } catch (e) {}
+      load();
+    });
+    $('logout').addEventListener('click', function (ev) {
+      ev.preventDefault(); try { localStorage.removeItem('jf-admin-key'); } catch (e) {}
+      KEY = ''; location.reload();
+    });
+    document.querySelector('.ad-tabs').addEventListener('click', function (ev) {
+      var b = ev.target.closest('[data-view]'); if (!b) return;
+      view = b.dataset.view;
+      document.querySelectorAll('.ad-tabs button').forEach(function (x) { x.classList.toggle('is-on', x === b); });
+      render();
+    });
+    $('list').addEventListener('click', function (ev) {
+      var b = ev.target.closest('[data-cancel]'); if (!b) return;
+      if (!confirmInline(b)) return;
+      b.disabled = true; b.textContent = 'Cancelling…';
+      api('cancel', { id: b.dataset.cancel }).then(load).catch(function (e) { alertMsg(e.message); b.disabled = false; });
+    });
+    // two-tap confirm (no pop-up dialogs)
+    function confirmInline(b) {
+      if (b.dataset.armed) return true;
+      b.dataset.armed = '1'; var old = b.textContent; b.textContent = 'Tap again to confirm';
+      setTimeout(function () { if (b.isConnected && !b.disabled) { delete b.dataset.armed; b.textContent = old; } }, 4000);
+      return false;
+    }
+    $('town-form').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      api('today', { town: $('town').value }).then(function (r) {
+        $('town-msg').textContent = r.town ? 'Showing: Today we\'re in ' + r.town + ' (the site updates within a minute)' : 'Hidden from the site.';
+      }).catch(function (e) { alertMsg(e.message); });
+    });
+    $('town-clear').addEventListener('click', function () { $('town').value = ''; $('town-form').requestSubmit(); });
+    $('b-all').addEventListener('change', function () { $('b-times').hidden = this.checked; });
+    $('block-form').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      api('block', { date: $('b-date').value, allDay: $('b-all').checked, start: $('b-start').value, end: $('b-end').value, label: $('b-label').value })
+        .then(function () { $('block-msg').textContent = 'Blocked.'; $('b-label').value = ''; return load(); })
+        .catch(function (e) { alertMsg(e.message); });
+    });
+    $('cal-copy').addEventListener('click', function () {
+      $('cal-url').select();
+      try { navigator.clipboard.writeText($('cal-url').value); this.textContent = 'Copied'; } catch (e) { document.execCommand('copy'); }
+    });
+
+    if (KEY) load(); else $('login').hidden = false;
+  })();
+  </script>
+</body>
+</html>

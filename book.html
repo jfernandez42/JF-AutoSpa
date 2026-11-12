@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Book a Detail | JF AutoSpa</title>
+  <meta name="description" content="Book mobile car detailing with JF AutoSpa. Pick your package and add-ons, choose an open time, and we come to you anywhere in NYC, Nassau, or Suffolk.">
+  <link rel="canonical" href="https://jfautospa.com/book.html">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="theme-color" content="#000000">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20261112c">
+  <link rel="stylesheet" href="book.css?v=20261112e">
+</head>
+<body class="bk-body">
+
+  <header class="topbar bk-top">
+    <a class="brand" href="index.html" aria-label="JF AutoSpa home">
+      <img class="brand-mark" src="logo-mark.jpg" alt="" width="125" height="96">
+      <span>JF AutoSpa</span>
+    </a>
+    <div class="bk-top-links">
+      <a href="tel:+15165679885">Call</a>
+      <a href="sms:+15165679885">Text</a>
+    </div>
+  </header>
+
+  <main class="bk-main">
+    <div class="bk-wrap">
+      <div class="bk-head">
+        <a class="bk-back-site" href="index.html">&larr; Back to site</a>
+        <h1>Book a Detail</h1>
+        <p class="bk-sub">We come to you anywhere in NYC, Nassau, or Suffolk. Takes about a minute.</p>
+        <ol class="bk-steps" aria-label="Booking steps">
+          <li data-step-dot="1" class="is-on"><span>1</span>Service</li>
+          <li data-step-dot="2"><span>2</span>Time</li>
+          <li data-step-dot="3"><span>3</span>Details</li>
+          <li data-step-dot="4"><span>4</span>Confirm</li>
+        </ol>
+      </div>
+
+      <p class="bk-alert" id="alert" role="alert" hidden></p>
+
+      <!-- STEP 1: package + add-ons -->
+      <section class="bk-step" data-step="1">
+        <h2>Choose a package</h2>
+        <div class="bk-pkgs" id="pkgs"><p class="bk-loading">Loading packages…</p></div>
+        <div id="addon-wrap" hidden>
+          <h2 class="bk-h2-gap">Add-ons <span class="bk-opt">(optional)</span></h2>
+          <div id="addons"></div>
+        </div>
+      </section>
+
+      <!-- STEP 2: date + time -->
+      <section class="bk-step" data-step="2" hidden>
+        <h2>Pick a day</h2>
+        <div class="bk-cal" id="cal"></div>
+        <div id="times-wrap" hidden>
+          <h2 class="bk-h2-gap" id="times-title">Pick a time</h2>
+          <div class="bk-times" id="times"></div>
+          <p class="bk-note">Times are when we arrive. We block extra time between jobs so we're never rushed.</p>
+        </div>
+      </section>
+
+      <!-- STEP 3: details -->
+      <section class="bk-step" data-step="3" hidden>
+        <h2>Your details</h2>
+        <form id="details" class="bk-form" novalidate>
+          <div class="field-row">
+            <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name" required></div>
+            <div class="field"><label for="f-phone">Mobile phone</label><input id="f-phone" name="phone" type="tel" autocomplete="tel" required></div>
+          </div>
+          <div class="field"><label for="f-email">Email <span class="bk-opt">(for your confirmation)</span></label><input id="f-email" name="email" type="email" autocomplete="email"></div>
+          <div class="field-row bk-addr">
+            <div class="field"><label for="f-address">Street address and town</label><input id="f-address" name="address" autocomplete="street-address" placeholder="12 Main St, Garden City" required></div>
+            <div class="field"><label for="f-zip">ZIP code</label><input id="f-zip" name="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required></div>
+          </div>
+          <div class="field"><label for="f-vehicle">Vehicle</label><input id="f-vehicle" name="vehicle" placeholder="Year, make, model, color" required></div>
+          <div class="field-row">
+            <div class="field"><label for="f-parking">Where will the car be?</label>
+              <select id="f-parking" name="parking" required>
+                <option value="">Choose one</option><option>Driveway</option><option>Street</option><option>Garage</option><option>Apartment or office lot</option>
+              </select></div>
+            <div class="field"><label for="f-condition">How is the inside right now?</label>
+              <select id="f-condition" name="condition" required>
+                <option value="">Choose one</option><option>Light</option><option>Average</option><option>Heavy (pet hair, sand, stains or smells)</option>
+              </select></div>
+          </div>
+          <div class="field"><label for="f-notes">Anything we should know? <span class="bk-opt">(optional)</span></label><textarea id="f-notes" name="notes" rows="3" placeholder="Gate code, where to park, a stain to focus on…"></textarea></div>
+          <p class="hp"><label>Leave this empty <input name="website" tabindex="-1" autocomplete="off"></label></p>
+        </form>
+      </section>
+
+      <!-- STEP 4: review -->
+      <section class="bk-step" data-step="4" hidden>
+        <h2>Review and confirm</h2>
+        <dl class="bk-review" id="review"></dl>
+        <ul class="bk-fine">
+          <li>Pay after the job with cash, Venmo, or Zelle.</li>
+          <li>Final price is confirmed when we see the car.</li>
+          <li>Need to change or cancel? Text <a href="sms:+15165679885">(516) 567-9885</a> at least 24 hours ahead.</li>
+        </ul>
+      </section>
+
+      <!-- DONE -->
+      <section class="bk-done" id="done" hidden>
+        <div class="bk-check" aria-hidden="true">✓</div>
+        <h2>You're booked!</h2>
+        <p id="done-line"></p>
+        <dl class="bk-review" id="done-review"></dl>
+        <p class="bk-note">We'll text you if anything changes. Questions? Call or text <a href="tel:+15165679885">(516) 567-9885</a>.</p>
+        <div class="bk-done-actions">
+          <a class="btn" id="ics" download="jf-autospa-detail.ics">Add to my calendar</a>
+          <a class="btn bk-btn-line" href="index.html">Back to site</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- sticky summary + nav -->
+  <div class="bk-bar" id="bar">
+    <div class="bk-bar-in">
+      <div class="bk-sum" id="sum"><b>Choose a package</b><span>Prices and times update as you pick.</span></div>
+      <div class="bk-bar-btns">
+        <button class="bk-back" type="button" id="back" hidden>Back</button>
+        <button class="btn" type="button" id="next" disabled>Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    var API = '/api';
+    var FORM_EMAIL = 'https://formsubmit.co/ajax/jfernandez42@icloud.com';
+    var S = { step: 1, pkg: null, addons: [], date: null, time: null, slots: null, slotsKey: '', cat: null, viewMonth: null, sending: false };
+    var $ = function (id) { return document.getElementById(id); };
+    var money = function (n) { return '$' + n.toLocaleString('en-US'); };
+
+    function q() {
+      if (!S.cat || !S.pkg) return null;
+      var p = S.cat.packages.find(function (x) { return x.id === S.pkg; });
+      var adds = S.addons.map(function (id) { return S.cat.addons.find(function (a) { return a.id === id; }); });
+      var r = { pkg: p, adds: adds, mins: p.mins, lo: p.lo, hi: p.hi, plus: false };
+      adds.forEach(function (a) { r.mins += a.mins; r.lo += a.lo; r.hi += a.hi; if (a.plus) r.plus = true; });
+      return r;
+    }
+    function dur(m) { var h = Math.floor(m / 60), r = m % 60; return (h ? h + ' hr' : '') + (h && r ? ' ' : '') + (r ? r + ' min' : ''); }
+    function price(r) { return (r.lo === r.hi ? money(r.lo) : money(r.lo) + '–' + money(r.hi)) + (r.plus ? '+' : ''); }
+    function fmtTime(hhmm) { var h = +hhmm.slice(0, 2), m = hhmm.slice(3); return ((h + 11) % 12 + 1) + ':' + m + (h < 12 ? ' AM' : ' PM'); }
+    function dateObj(d) { var p = d.split('-'); return new Date(+p[0], p[1] - 1, +p[2]); }
+    function fmtDate(d) { return dateObj(d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }); }
+    function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function alertMsg(t) { var a = $('alert'); a.textContent = t || ''; a.hidden = !t; if (t) a.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+
+    // ---------- step 1 ----------
+    function renderPkgs() {
+      $('pkgs').innerHTML = S.cat.packages.map(function (p) {
+        return '<label class="bk-pkg' + (p.featured ? ' is-feature' : '') + '"><input type="radio" name="pkg" value="' + p.id + '"' + (S.pkg === p.id ? ' checked' : '') + '>' +
+          '<span class="bk-pkg-top"><b>' + esc(p.name) + '</b><span class="bk-price">' + money(p.lo) + '–' + money(p.hi) + '</span></span>' +
+          '<span class="bk-pkg-meta">About ' + dur(p.mins) + (p.featured ? ' · Most complete' : '') + '</span>' +
+          '<span class="bk-pkg-blurb">' + esc(p.blurb) + '</span></label>';
+      }).join('');
+    }
+    function renderAddons() {
+      var p = S.cat.packages.find(function (x) { return x.id === S.pkg; });
+      if (!p) { $('addon-wrap').hidden = true; return; }
+      var fits = function (a) { return p.side === 'both' || a.side === p.side; };
+      S.addons = S.addons.filter(function (id) { return fits(S.cat.addons.find(function (a) { return a.id === id; })); });
+      var groups = [['ext', 'Exterior'], ['int', 'Interior']].filter(function (g) { return p.side === 'both' || p.side === g[0]; });
+      $('addons').innerHTML = groups.map(function (g) {
+        var list = S.cat.addons.filter(function (a) { return a.side === g[0]; });
+        return '<fieldset class="bk-addons"><legend>' + g[1] + '</legend>' + list.map(function (a) {
+          var pr = (a.lo === a.hi ? money(a.lo) : money(a.lo) + '–' + money(a.hi)) + (a.plus ? '+' : '');
+          return '<label class="bk-addon"><input type="checkbox" value="' + a.id + '"' + (S.addons.indexOf(a.id) > -1 ? ' checked' : '') + '>' +
+            '<span class="bk-addon-txt"><b>' + esc(a.name) + '</b><small>' + esc(a.note) + ' · +' + dur(a.mins) + '</small></span><span class="bk-addon-pr">' + pr + '</span></label>';
+        }).join('') + '</fieldset>';
+      }).join('');
+      $('addon-wrap').hidden = false;
+    }
+    $('pkgs').addEventListener('change', function (e) {
+      if (e.target.name !== 'pkg') return;
+      S.pkg = e.target.value; renderAddons(); resetTime(); update();
+    });
+    $('addons').addEventListener('change', function (e) {
+      if (e.target.type !== 'checkbox') return;
+      var id = e.target.value, i = S.addons.indexOf(id);
+      if (e.target.checked && i < 0) S.addons.push(id);
+      if (!e.target.checked && i > -1) S.addons.splice(i, 1);
+      resetTime(); update();
+    });
+    function resetTime() { S.time = null; }
+
+    // ---------- step 2 ----------
+    function loadSlots() {
+      var key = S.pkg + '|' + S.addons.slice().sort().join(',');
+      if (S.slots && S.slotsKey === key) { renderCal(); return Promise.resolve(); }
+      $('cal').innerHTML = '<p class="bk-loading">Finding open times…</p>'; $('times-wrap').hidden = true;
+      return fetch(API + '/slots?pkg=' + encodeURIComponent(S.pkg) + '&addons=' + encodeURIComponent(S.addons.join(',')))
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d.error) throw new Error(d.error);
+          S.slots = d.days; S.slotsKey = key; S.today = d.today;
+          if (S.date && !(S.slots[S.date] || []).length) { S.date = null; S.time = null; }
+          if (S.time && S.slots[S.date].indexOf(S.time) < 0) S.time = null;
+          var first = Object.keys(S.slots).sort()[0];
+          if (!S.viewMonth) S.viewMonth = (S.date || first || S.today).slice(0, 7);
+          renderCal(); update();
+        })
+        .catch(function () { $('cal').innerHTML = '<p class="bk-loading">Couldn\'t load times. Please refresh, or call or text (516) 567-9885.</p>'; });
+    }
+    function renderCal() {
+      var ym = S.viewMonth.split('-').map(Number), y = ym[0], m = ym[1];
+      var first = new Date(y, m - 1, 1), days = new Date(y, m, 0).getDate();
+      var dates = Object.keys(S.slots).sort();
+      var minYm = (S.today || dates[0] || S.viewMonth).slice(0, 7), maxYm = (dates[dates.length - 1] || S.viewMonth).slice(0, 7);
+      var title = first.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      var h = '<div class="bk-cal-head"><button type="button" class="bk-cal-nav" data-nav="-1" aria-label="Previous month"' + (S.viewMonth <= minYm ? ' disabled' : '') + '>‹</button>' +
+        '<b>' + title + '</b><button type="button" class="bk-cal-nav" data-nav="1" aria-label="Next month"' + (S.viewMonth >= maxYm ? ' disabled' : '') + '>›</button></div>' +
+        '<div class="bk-cal-grid">' + ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(function (d) { return '<span class="bk-dow">' + d + '</span>'; }).join('');
+      for (var i = 0; i < first.getDay(); i++) h += '<span></span>';
+      for (var d = 1; d <= days; d++) {
+        var ds = S.viewMonth + '-' + String(d).padStart(2, '0');
+        var open = (S.slots[ds] || []).length > 0;
+        h += '<button type="button" class="bk-day' + (S.date === ds ? ' is-on' : '') + (ds === S.today ? ' is-today' : '') + '" data-date="' + ds + '"' + (open ? '' : ' disabled') +
+          ' aria-label="' + fmtDate(ds) + (open ? '' : ', unavailable') + '">' + d + '</button>';
+      }
+      h += '</div>';
+      if (!dates.length) h += '<p class="bk-note">No open times right now. Please call or text (516) 567-9885.</p>';
+      $('cal').innerHTML = h;
+      renderTimes();
+    }
+    function renderTimes() {
+      if (!S.date) { $('times-wrap').hidden = true; return; }
+      $('times-title').textContent = fmtDate(S.date);
+      $('times').innerHTML = (S.slots[S.date] || []).map(function (t) {
+        return '<button type="button" class="bk-time' + (S.time === t ? ' is-on' : '') + '" data-time="' + t + '">' + fmtTime(t) + '</button>';
+      }).join('');
+      $('times-wrap').hidden = false;
+    }
+    $('cal').addEventListener('click', function (e) {
+      var nav = e.target.closest('[data-nav]'), day = e.target.closest('[data-date]');
+      if (nav && !nav.disabled) {
+        var ym = S.viewMonth.split('-').map(Number), dt = new Date(ym[0], ym[1] - 1 + (+nav.dataset.nav), 1);
+        S.viewMonth = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0'); renderCal();
+      }
+      if (day && !day.disabled) { S.date = day.dataset.date; S.time = null; renderCal(); update(); $('times-wrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+    });
+    $('times').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-time]'); if (!b) return;
+      S.time = b.dataset.time; renderTimes(); update();
+    });
+
+    // ---------- step 3 ----------
+    var F = $('details');
+    function details() { var o = {}; new FormData(F).forEach(function (v, k) { o[k] = String(v).trim(); }); return o; }
+    function detailsOk(show) {
+      var d = details(), bad = null;
+      if (!d.name) bad = 'f-name';
+      else if (d.phone.replace(/\D/g, '').length < 10) bad = 'f-phone';
+      else if (d.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)) bad = 'f-email';
+      else if (!d.address) bad = 'f-address';
+      else if (!/^\d{5}$/.test(d.zip)) bad = 'f-zip';
+      else if (!d.vehicle) bad = 'f-vehicle';
+      else if (!d.parking) bad = 'f-parking';
+      else if (!d.condition) bad = 'f-condition';
+      if (show) {
+        F.querySelectorAll('.is-bad').forEach(function (el) { el.classList.remove('is-bad'); });
+        if (bad) { var el = $(bad); el.classList.add('is-bad'); el.focus(); alertMsg('Please check the highlighted field.'); }
+      }
+      return !bad;
+    }
+    F.addEventListener('input', function (e) { e.target.classList.remove('is-bad'); });
+    F.addEventListener('submit', function (e) { e.preventDefault(); go(1); });
+
+    // ---------- step 4 ----------
+    function reviewHtml(r, d, date, time) {
+      var rows = [
+        ['Service', esc(r.pkg.name) + (r.adds.length ? '<br><small>+ ' + r.adds.map(function (a) { return esc(a.name); }).join(', ') + '</small>' : '')],
+        ['When', fmtDate(date) + ' at ' + fmtTime(time)],
+        ['Estimate', price(r) + ' <small>· about ' + dur(r.mins) + '</small>'],
+        ['Where', esc(d.address) + ', ' + esc(d.zip) + '<br><small>' + esc(d.parking) + '</small>'],
+        ['Vehicle', esc(d.vehicle)],
+        ['Contact', esc(d.name) + '<br><small>' + esc(d.phone) + (d.email ? ' · ' + esc(d.email) : '') + '</small>']
+      ];
+      if (d.notes) rows.push(['Notes', esc(d.notes)]);
+      return rows.map(function (x) { return '<div><dt>' + x[0] + '</dt><dd>' + x[1] + '</dd></div>'; }).join('');
+    }
+
+    // ---------- flow ----------
+    function canNext() {
+      if (S.step === 1) return !!S.pkg;
+      if (S.step === 2) return !!(S.date && S.time);
+      if (S.step === 3) return true;
+      if (S.step === 4) return !S.sending;
+      return false;
+    }
+    function update() {
+      var r = q();
+      if (r) {
+        $('sum').innerHTML = '<b>' + esc(r.pkg.name) + (r.adds.length ? ' + ' + r.adds.length + ' add-on' + (r.adds.length > 1 ? 's' : '') : '') + '</b>' +
+          '<span>' + price(r) + (S.date && S.time && S.step > 1 ? ' · ' + dateObj(S.date).toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' }) + ' ' + fmtTime(S.time) : ' · about ' + dur(r.mins)) + '</span>';
+      }
+      $('next').disabled = !canNext();
+      $('next').textContent = S.step === 4 ? (S.sending ? 'Booking…' : 'Book it') : 'Continue';
+      $('back').hidden = S.step === 1;
+    }
+    function show(step) {
+      S.step = step; alertMsg('');
+      document.querySelectorAll('[data-step]').forEach(function (s) { s.hidden = +s.dataset.step !== step; });
+      document.querySelectorAll('[data-step-dot]').forEach(function (s) { var n = +s.dataset.stepDot; s.classList.toggle('is-on', n === step); s.classList.toggle('is-done', n < step); });
+      if (step === 2) loadSlots();
+      if (step === 4) $('review').innerHTML = reviewHtml(q(), details(), S.date, S.time);
+      update(); window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function go(dir) {
+      if (dir > 0 && S.step === 3 && !detailsOk(true)) return;
+      if (dir > 0 && S.step === 4) return submit();
+      if (dir > 0 && !canNext()) return;
+      show(Math.min(4, Math.max(1, S.step + dir)));
+    }
+    $('next').addEventListener('click', function () { go(1); });
+    $('back').addEventListener('click', function () { go(-1); });
+
+    function submit() {
+      if (S.sending) return;
+      S.sending = true; update();
+      var d = details(), r = q();
+      var body = Object.assign({}, d, { pkg: S.pkg, addons: S.addons, date: S.date, time: S.time });
+      fetch(API + '/book', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+        .then(function (res) { return res.json().then(function (j) { return { status: res.status, j: j }; }); })
+        .then(function (x) {
+          S.sending = false;
+          if (x.status === 409) { S.slots = null; S.time = null; show(2); alertMsg(x.j.error); return; }
+          if (!x.j.ok) { update(); alertMsg(x.j.error || 'Something went wrong. Please call or text (516) 567-9885.'); return; }
+          done(r, d, x.j.booking);
+        })
+        .catch(function () { S.sending = false; update(); alertMsg('Couldn\'t reach the booking system. Please try again, or call or text (516) 567-9885.'); });
+    }
+
+    function done(r, d, b) {
+      document.querySelectorAll('[data-step]').forEach(function (s) { s.hidden = true; });
+      document.querySelector('.bk-steps').hidden = true;
+      $('bar').hidden = true; document.body.classList.add('is-done');
+      $('done-line').textContent = 'See you ' + fmtDate(S.date) + ' at ' + fmtTime(S.time) + '.' + (d.email ? ' A confirmation is on its way to ' + d.email + '.' : '');
+      $('done-review').innerHTML = reviewHtml(r, d, S.date, S.time);
+      $('done').hidden = false; window.scrollTo({ top: 0, behavior: 'smooth' });
+      // calendar file for the customer
+      var p = S.date.replace(/-/g, ''), st = S.time.replace(':', '') + '00';
+      var endMin = +S.time.slice(0, 2) * 60 + +S.time.slice(3) + r.mins;
+      var en = String(Math.floor(endMin / 60)).padStart(2, '0') + String(endMin % 60).padStart(2, '0') + '00';
+      var ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//JF AutoSpa//Booking//EN', 'BEGIN:VEVENT', 'UID:' + b.id + '@jfautospa.com',
+        'DTSTART;TZID=America/New_York:' + p + 'T' + st, 'DTEND;TZID=America/New_York:' + p + 'T' + en,
+        'SUMMARY:JF AutoSpa – ' + r.pkg.name, 'LOCATION:' + (d.address + ', ' + d.zip).replace(/[,;]/g, '\\$&'),
+        'DESCRIPTION:Questions or changes? Call or text (516) 567-9885.', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+      $('ics').href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+      // email notice to JF AutoSpa (+ confirmation to the customer when they gave an email)
+      var mail = {
+        _subject: 'New booking: ' + r.pkg.name + ' – ' + fmtDate(S.date) + ' ' + fmtTime(S.time),
+        _template: 'table', _captcha: 'false',
+        Name: d.name, Phone: d.phone, When: fmtDate(S.date) + ' at ' + fmtTime(S.time),
+        Package: r.pkg.name, 'Add-ons': r.adds.map(function (a) { return a.name; }).join(', ') || 'None',
+        Estimate: price(r), 'Time needed': dur(r.mins), Address: d.address + ', ' + d.zip, Vehicle: d.vehicle,
+        Parking: d.parking, Condition: d.condition, Notes: d.notes || '-'
+      };
+      if (d.email) {
+        mail.email = d.email;
+        mail._autoresponse = 'Thanks for booking with JF AutoSpa! You\'re set for ' + fmtDate(S.date) + ' at ' + fmtTime(S.time) + ' (' + r.pkg.name +
+          (r.adds.length ? ' + ' + r.adds.map(function (a) { return a.name; }).join(', ') : '') + '). Estimate ' + price(r) +
+          ', confirmed when we see the car. We bring our own water and power. Pay after with cash, Venmo, or Zelle. Need to change anything? Text (516) 567-9885.';
+      }
+      fetch(FORM_EMAIL, { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify(mail) }).catch(function () {});
+    }
+
+    // ---------- start ----------
+    fetch(API + '/catalog').then(function (r) { return r.json(); }).then(function (c) {
+      S.cat = c;
+      var want = new URLSearchParams(location.search).get('pkg');
+      if (want && c.packages.some(function (p) { return p.id === want; })) S.pkg = want;
+      renderPkgs(); if (S.pkg) renderAddons(); update();
+    }).catch(function () {
+      $('pkgs').innerHTML = '<p class="bk-loading">Booking is unavailable right now. Please call or text <a href="tel:+15165679885">(516) 567-9885</a>.</p>';
+    });
+  })();
+  </script>
+</body>
+</html>

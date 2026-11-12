@@ -1,0 +1,8 @@
+{
+  "name": "jf-autospa",
+  "private": true,
+  "description": "JF AutoSpa website and booking API",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}
