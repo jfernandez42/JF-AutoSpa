@@ -5,7 +5,8 @@
 export const RULES = {
   timeZone: 'America/New_York',
   // 0 = Sunday ... 6 = Saturday. Open [startMin, endMin] in minutes after midnight.
-  hours: { 1: [480, 1140], 2: [480, 1140], 3: [480, 1140], 4: [480, 1140], 5: [480, 1140], 6: [480, 1140] },
+  // Mon–Thu 8am–8pm, Fri–Sat 8am–5pm, Sunday closed (jobs must finish by closing)
+  hours: { 1: [480, 1200], 2: [480, 1200], 3: [480, 1200], 4: [480, 1200], 5: [480, 1020], 6: [480, 1020] },
   slotStep: 30,      // offer a start time every 30 minutes
   bufferMin: 45,     // drive and setup time blocked after every job
   leadHours: 12,     // earliest a customer can book from now
