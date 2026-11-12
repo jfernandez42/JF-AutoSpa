@@ -343,6 +343,9 @@ section[id], div[id] { scroll-margin-top: 76px; }
 .book { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 56px; align-items: start; }
 .book-copy p { color: var(--chrome); margin-top: 18px; max-width: 40ch; font-size: 1.0625rem; }
 .book-copy a { color: var(--amber); font-weight: 700; }
+.book-copy .btn { color: var(--black); margin-top: 22px; }
+.pkg-btn { margin-top: auto; width: 100%; }
+.pkg .ticks { margin-bottom: 24px; }
 .form {
   background: var(--paper); color: var(--ink);
   padding: clamp(22px, 3vw, 36px); border-radius: var(--radius-panel);
