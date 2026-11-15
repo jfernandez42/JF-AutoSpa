@@ -21,7 +21,7 @@ export const PACKAGES = [
     blurb: 'Vacuum, wipe-down, streak-free interior windows.' },
   { id: 'fresh', name: 'Fresh Start', lo: 100, hi: 150, mins: 120, side: 'both',
     blurb: 'Inside and out: hand wash, tire shine, vacuum, wipe-down, windows.' },
-  { id: 'signature', name: 'Signature Package', lo: 180, hi: 240, mins: 210, side: 'both', featured: true,
+  { id: 'signature', name: 'Signature Package', lo: 180, hi: 260, mins: 210, side: 'both', featured: true,
     blurb: 'Everything in Fresh Start plus pre-wash, door jambs, deep wheel clean, steam, air blowout and deep interior clean.' }
 ];
 
