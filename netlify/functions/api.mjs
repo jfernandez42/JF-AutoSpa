@@ -109,7 +109,7 @@ export default async (req) => {
     if (path === 'calendar.ics' && method === 'GET') {
       if (!isOwner(req, url)) return new Response('Not found', { status: 404 });
       const from = addDays(nyNow().date, -30);
-      const list = (await readAll()).filter(e => e.date >= from);
+      const list = (await readAll()).filter(e => e.type === 'weekly' || e.date >= from);
       return new Response(icsCalendar(list), { headers: { 'content-type': 'text/calendar; charset=utf-8', 'cache-control': 'no-store' } });
     }
 
@@ -119,9 +119,11 @@ export default async (req) => {
 
       if (action === 'schedule' && method === 'GET') {
         const from = addDays(nyNow().date, -14);
-        const list = (await readAll()).filter(e => e.date >= from).sort((a, b) => a.date.localeCompare(b.date) || a.start - b.start);
+        const all = await readAll();
+        const list = all.filter(e => e.type !== 'weekly' && e.date >= from).sort((a, b) => a.date.localeCompare(b.date) || a.start - b.start);
+        const weekly = all.filter(e => e.type === 'weekly' && e.status !== 'cancelled');
         const t = await store().get('today', { type: 'json' });
-        return json({ today: nyNow().date, entries: list, town: t && t.date === nyNow().date ? t.town : '' });
+        return json({ today: nyNow().date, entries: list, weekly, town: t && t.date === nyNow().date ? t.town : '' });
       }
 
       const body = method === 'POST' ? await req.json().catch(() => ({})) : {};
@@ -141,7 +143,14 @@ export default async (req) => {
         const start = body.allDay ? 0 : fromHHMM(body.start);
         const end = body.allDay ? 1440 : fromHHMM(body.end);
         if (!isDate(body.date) || start === null || end === null || end <= start) return json({ error: 'Check the date and times.' }, 400);
-        const entry = { id: newId(), type: 'block', status: 'active', date: body.date, start, end, label: clean(body.label, 100) || 'Blocked', createdAt: new Date().toISOString() };
+        let entry;
+        if (body.repeat) {
+          const days = [...new Set((Array.isArray(body.days) ? body.days : []).map(Number))].filter(d => d >= 0 && d <= 6).sort();
+          if (!days.length) return json({ error: 'Pick at least one day of the week.' }, 400);
+          entry = { id: newId(), type: 'weekly', status: 'active', days, since: body.date, start, end, label: clean(body.label, 100) || 'Blocked', createdAt: new Date().toISOString() };
+        } else {
+          entry = { id: newId(), type: 'block', status: 'active', date: body.date, start, end, label: clean(body.label, 100) || 'Blocked', createdAt: new Date().toISOString() };
+        }
         const res = await mutate(list => ({ list: [...list, entry], verify: l => l.some(e => e.id === entry.id) }));
         return res.error ? json({ error: res.error }, res.status) : json({ ok: true, entry });
       }

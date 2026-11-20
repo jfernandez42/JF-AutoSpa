@@ -47,7 +47,9 @@ export function slotsFor(dateStr, mins, entries, now = new Date()) {
   const leadMin = n.min + RULES.leadHours * 60;
   const earliestDate = addDays(n.date, Math.floor(leadMin / 1440));
   const earliestMin = leadMin % 1440;
-  const dayBusy = entries.filter(e => e.date === dateStr && e.status !== 'cancelled').map(busy);
+  const wd = weekday(dateStr);
+  const dayBusy = entries.filter(e => e.status !== 'cancelled' &&
+    (e.date === dateStr || (e.type === 'weekly' && e.days.includes(wd) && dateStr >= e.since))).map(busy);
   const out = [];
   for (let s = hours[0]; s + mins <= hours[1]; s += RULES.slotStep) {
     if (dateStr < earliestDate || (dateStr === earliestDate && s < earliestMin)) continue;
@@ -86,8 +88,17 @@ export function icsCalendar(entries, name = 'JF AutoSpa bookings') {
   const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//JF AutoSpa//Bookings//EN', 'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH', `X-WR-CALNAME:${icsText(name)}`, 'X-PUBLISHED-TTL:PT15M', 'REFRESH-INTERVAL;VALUE=DURATION:PT15M'];
   const stamp = icsDate(Date.now());
+  const BYDAY = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
   for (const e of entries) {
     if (e.status === 'cancelled') continue;
+    if (e.type === 'weekly') {
+      let first = e.since;
+      for (let i = 0; i < 7 && !e.days.includes(weekday(first)); i++) first = addDays(first, 1);
+      lines.push('BEGIN:VEVENT', `UID:${e.id}@jfautospa.com`, `DTSTAMP:${stamp}`,
+        `DTSTART:${icsDate(nyToUtc(first, e.start))}`, `DTEND:${icsDate(nyToUtc(first, Math.min(e.end, 1439)))}`,
+        `RRULE:FREQ=WEEKLY;BYDAY=${e.days.map(d => BYDAY[d]).join(',')}`, `SUMMARY:${icsText(e.label || 'Blocked')}`, 'END:VEVENT');
+      continue;
+    }
     const title = e.type === 'booking' ? `${e.pkgName} – ${e.name}` : (e.label || 'Blocked');
     const desc = e.type === 'booking'
       ? [`${e.phone}${e.email ? ' · ' + e.email : ''}`, `Vehicle: ${e.vehicle}`, `Add-ons: ${e.addonNames?.length ? e.addonNames.join(', ') : 'none'}`,

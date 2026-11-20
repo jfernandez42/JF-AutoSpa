@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#000000">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=20261112c">
-  <link rel="stylesheet" href="book.css?v=20261112e">
+  <link rel="stylesheet" href="book.css?v=20261120">
 </head>
 <body class="bk-body" style="padding-bottom:40px">
   <header class="topbar bk-top">
@@ -57,8 +57,13 @@
           <h2>Block off time</h2>
           <p class="bk-note" style="margin:0 0 12px">For days off, personal time, or jobs booked by phone. Customers won't be able to book over it.</p>
           <div class="field-row">
-            <div class="field"><label for="b-date">Date</label><input id="b-date" type="date" required></div>
+            <div class="field"><label for="b-date" id="b-date-label">Date</label><input id="b-date" type="date" required></div>
             <div class="field"><label for="b-label">Label</label><input id="b-label" placeholder="Day off, or customer name" maxlength="100"></div>
+          </div>
+          <label style="display:flex;gap:10px;align-items:center;font-weight:700;margin:0 0 10px"><input type="checkbox" id="b-repeat" style="width:18px;height:18px;accent-color:var(--ink)"> Repeat every week (until I remove it)</label>
+          <div class="ad-days" id="b-days" hidden>
+            <label><input type="checkbox" value="1"><span>Mon</span></label><label><input type="checkbox" value="2"><span>Tue</span></label><label><input type="checkbox" value="3"><span>Wed</span></label>
+            <label><input type="checkbox" value="4"><span>Thu</span></label><label><input type="checkbox" value="5"><span>Fri</span></label><label><input type="checkbox" value="6"><span>Sat</span></label>
           </div>
           <label style="display:flex;gap:10px;align-items:center;font-weight:700;margin:0 0 14px"><input type="checkbox" id="b-all" checked style="width:18px;height:18px;accent-color:var(--ink)"> All day</label>
           <div class="field-row" id="b-times" hidden>
@@ -67,6 +72,10 @@
           </div>
           <button class="btn" type="submit">Block it</button>
           <p class="ad-msg" id="block-msg"></p>
+          <div id="weekly-wrap" hidden>
+            <h3 class="ad-day" style="margin-top:18px">Repeating every week</h3>
+            <div id="weekly"></div>
+          </div>
         </form>
 
         <!-- calendar feed -->
@@ -105,6 +114,7 @@
         var url = location.origin + '/api/calendar.ics?key=' + encodeURIComponent(KEY);
         $('cal-url').value = url; $('cal-sub').href = url.replace(/^https?:/, 'webcal:');
         if (!$('b-date').value) $('b-date').value = d.today;
+        renderWeekly();
         render();
       }).catch(function (e) {
         if (e.status === 401) { try { localStorage.removeItem('jf-admin-key'); } catch (x) {} KEY = ''; $('login').hidden = false; $('app').hidden = true; alertMsg('Wrong passcode, or the passcode isn\'t set up in Netlify yet.'); }
@@ -112,6 +122,23 @@
       });
     }
 
+    var DAYN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    function renderWeekly() {
+      var w = (data.weekly || []);
+      $('weekly-wrap').hidden = !w.length;
+      $('weekly').innerHTML = w.map(function (e) {
+        return '<div class="ad-job is-block"><div class="ad-job-top"><b>' + esc(e.label) + '</b><span class="ad-time">' +
+          (e.start === 0 && e.end >= 1440 ? 'All day' : t12(e.start) + '–' + t12(e.end)) + '</span></div>' +
+          '<p>Every ' + e.days.map(function (d) { return DAYN[d]; }).join(', ') + ' · starting ' + dlabel(e.since) + '</p>' +
+          '<div class="ad-acts"><button type="button" class="ad-cancel" data-cancel="' + e.id + '">Remove</button></div></div>';
+      }).join('');
+    }
+    $('weekly').addEventListener('click', function (ev) {
+      var b = ev.target.closest('[data-cancel]'); if (!b) return;
+      if (!confirmInline(b)) return;
+      b.disabled = true; b.textContent = 'Removing…';
+      api('cancel', { id: b.dataset.cancel }).then(load).catch(function (e) { alertMsg(e.message); b.disabled = false; });
+    });
     function render() {
       var today = data.today;
       var list = data.entries.filter(function (e) { return view === 'upcoming' ? e.date >= today : e.date < today; });
@@ -184,9 +211,15 @@
     });
     $('town-clear').addEventListener('click', function () { $('town').value = ''; $('town-form').requestSubmit(); });
     $('b-all').addEventListener('change', function () { $('b-times').hidden = this.checked; });
+    $('b-repeat').addEventListener('change', function () {
+      $('b-days').hidden = !this.checked;
+      $('b-date-label').textContent = this.checked ? 'Starting' : 'Date';
+    });
     $('block-form').addEventListener('submit', function (ev) {
       ev.preventDefault();
-      api('block', { date: $('b-date').value, allDay: $('b-all').checked, start: $('b-start').value, end: $('b-end').value, label: $('b-label').value })
+      var days = [].map.call(document.querySelectorAll('#b-days input:checked'), function (i) { return +i.value; });
+      api('block', { date: $('b-date').value, allDay: $('b-all').checked, start: $('b-start').value, end: $('b-end').value, label: $('b-label').value,
+                     repeat: $('b-repeat').checked, days: days })
         .then(function () { $('block-msg').textContent = 'Blocked.'; $('b-label').value = ''; return load(); })
         .catch(function (e) { alertMsg(e.message); });
     });
