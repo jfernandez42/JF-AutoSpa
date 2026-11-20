@@ -36,6 +36,21 @@ function busy(e) {
   return [e.start, e.end + (e.type === 'booking' ? RULES.bufferMin : 0)];
 }
 
+function daysBetween(a, b) {
+  const [y1, m1, d1] = a.split('-').map(Number), [y2, m2, d2] = b.split('-').map(Number);
+  return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000);
+}
+// Does a repeating block land on this date? Weeks run Sunday–Saturday, counted from the week of `since`.
+export function weeklyHits(e, dateStr) {
+  if (dateStr < e.since || !e.days.includes(weekday(dateStr))) return false;
+  const every = e.every || 1;
+  // count weeks from the first chosen day on/after `since`, so that day is always blocked
+  let first = e.since;
+  for (let i = 0; i < 7 && !e.days.includes(weekday(first)); i++) first = addDays(first, 1);
+  const anchor = addDays(first, -weekday(first));
+  return Math.floor(daysBetween(anchor, dateStr) / 7) % every === 0;
+}
+
 // Open start times for one date for a job of `mins` minutes.
 export function slotsFor(dateStr, mins, entries, now = new Date()) {
   const hours = RULES.hours[weekday(dateStr)];
@@ -47,9 +62,8 @@ export function slotsFor(dateStr, mins, entries, now = new Date()) {
   const leadMin = n.min + RULES.leadHours * 60;
   const earliestDate = addDays(n.date, Math.floor(leadMin / 1440));
   const earliestMin = leadMin % 1440;
-  const wd = weekday(dateStr);
   const dayBusy = entries.filter(e => e.status !== 'cancelled' &&
-    (e.date === dateStr || (e.type === 'weekly' && e.days.includes(wd) && dateStr >= e.since))).map(busy);
+    (e.date === dateStr || (e.type === 'weekly' && weeklyHits(e, dateStr)))).map(busy);
   const out = [];
   for (let s = hours[0]; s + mins <= hours[1]; s += RULES.slotStep) {
     if (dateStr < earliestDate || (dateStr === earliestDate && s < earliestMin)) continue;
@@ -93,10 +107,10 @@ export function icsCalendar(entries, name = 'JF AutoSpa bookings') {
     if (e.status === 'cancelled') continue;
     if (e.type === 'weekly') {
       let first = e.since;
-      for (let i = 0; i < 7 && !e.days.includes(weekday(first)); i++) first = addDays(first, 1);
+      for (let i = 0; i < 7 * (e.every || 1) && !weeklyHits(e, first); i++) first = addDays(first, 1);
       lines.push('BEGIN:VEVENT', `UID:${e.id}@jfautospa.com`, `DTSTAMP:${stamp}`,
         `DTSTART:${icsDate(nyToUtc(first, e.start))}`, `DTEND:${icsDate(nyToUtc(first, Math.min(e.end, 1439)))}`,
-        `RRULE:FREQ=WEEKLY;BYDAY=${e.days.map(d => BYDAY[d]).join(',')}`, `SUMMARY:${icsText(e.label || 'Blocked')}`, 'END:VEVENT');
+        `RRULE:FREQ=WEEKLY;INTERVAL=${e.every || 1};WKST=SU;BYDAY=${e.days.map(d => BYDAY[d]).join(',')}`, `SUMMARY:${icsText(e.label || 'Blocked')}`, 'END:VEVENT');
       continue;
     }
     const title = e.type === 'booking' ? `${e.pkgName} – ${e.name}` : (e.label || 'Blocked');

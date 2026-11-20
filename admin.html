@@ -60,7 +60,9 @@
             <div class="field"><label for="b-date" id="b-date-label">Date</label><input id="b-date" type="date" required></div>
             <div class="field"><label for="b-label">Label</label><input id="b-label" placeholder="Day off, or customer name" maxlength="100"></div>
           </div>
-          <label style="display:flex;gap:10px;align-items:center;font-weight:700;margin:0 0 10px"><input type="checkbox" id="b-repeat" style="width:18px;height:18px;accent-color:var(--ink)"> Repeat every week (until I remove it)</label>
+          <label style="display:flex;gap:10px;align-items:center;font-weight:700;margin:0 0 10px"><input type="checkbox" id="b-repeat" style="width:18px;height:18px;accent-color:var(--ink)"> Repeat (until I remove it)</label>
+          <div class="field" id="b-every-wrap" hidden style="max-width:240px;margin-bottom:10px"><label for="b-every">How often</label>
+            <select id="b-every"><option value="1">Every week</option><option value="2">Every other week</option><option value="3">Every 3 weeks</option><option value="4">Every 4 weeks</option></select></div>
           <div class="ad-days" id="b-days" hidden>
             <label><input type="checkbox" value="1"><span>Mon</span></label><label><input type="checkbox" value="2"><span>Tue</span></label><label><input type="checkbox" value="3"><span>Wed</span></label>
             <label><input type="checkbox" value="4"><span>Thu</span></label><label><input type="checkbox" value="5"><span>Fri</span></label><label><input type="checkbox" value="6"><span>Sat</span></label>
@@ -73,7 +75,7 @@
           <button class="btn" type="submit">Block it</button>
           <p class="ad-msg" id="block-msg"></p>
           <div id="weekly-wrap" hidden>
-            <h3 class="ad-day" style="margin-top:18px">Repeating every week</h3>
+            <h3 class="ad-day" style="margin-top:18px">Repeating blocks</h3>
             <div id="weekly"></div>
           </div>
         </form>
@@ -129,7 +131,7 @@
       $('weekly').innerHTML = w.map(function (e) {
         return '<div class="ad-job is-block"><div class="ad-job-top"><b>' + esc(e.label) + '</b><span class="ad-time">' +
           (e.start === 0 && e.end >= 1440 ? 'All day' : t12(e.start) + '–' + t12(e.end)) + '</span></div>' +
-          '<p>Every ' + e.days.map(function (d) { return DAYN[d]; }).join(', ') + ' · starting ' + dlabel(e.since) + '</p>' +
+          '<p>' + ['', 'Every', 'Every other', 'Every 3rd', 'Every 4th'][e.every || 1] + ' ' + e.days.map(function (d) { return DAYN[d]; }).join(', ') + ' · starting ' + dlabel(e.since) + '</p>' +
           '<div class="ad-acts"><button type="button" class="ad-cancel" data-cancel="' + e.id + '">Remove</button></div></div>';
       }).join('');
     }
@@ -212,14 +214,14 @@
     $('town-clear').addEventListener('click', function () { $('town').value = ''; $('town-form').requestSubmit(); });
     $('b-all').addEventListener('change', function () { $('b-times').hidden = this.checked; });
     $('b-repeat').addEventListener('change', function () {
-      $('b-days').hidden = !this.checked;
+      $('b-days').hidden = !this.checked; $('b-every-wrap').hidden = !this.checked;
       $('b-date-label').textContent = this.checked ? 'Starting' : 'Date';
     });
     $('block-form').addEventListener('submit', function (ev) {
       ev.preventDefault();
       var days = [].map.call(document.querySelectorAll('#b-days input:checked'), function (i) { return +i.value; });
       api('block', { date: $('b-date').value, allDay: $('b-all').checked, start: $('b-start').value, end: $('b-end').value, label: $('b-label').value,
-                     repeat: $('b-repeat').checked, days: days })
+                     repeat: $('b-repeat').checked, days: days, every: +$('b-every').value })
         .then(function () { $('block-msg').textContent = 'Blocked.'; $('b-label').value = ''; return load(); })
         .catch(function (e) { alertMsg(e.message); });
     });

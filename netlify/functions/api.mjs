@@ -147,7 +147,8 @@ export default async (req) => {
         if (body.repeat) {
           const days = [...new Set((Array.isArray(body.days) ? body.days : []).map(Number))].filter(d => d >= 0 && d <= 6).sort();
           if (!days.length) return json({ error: 'Pick at least one day of the week.' }, 400);
-          entry = { id: newId(), type: 'weekly', status: 'active', days, since: body.date, start, end, label: clean(body.label, 100) || 'Blocked', createdAt: new Date().toISOString() };
+          const every = Math.min(4, Math.max(1, parseInt(body.every, 10) || 1));
+          entry = { id: newId(), type: 'weekly', status: 'active', days, every, since: body.date, start, end, label: clean(body.label, 100) || 'Blocked', createdAt: new Date().toISOString() };
         } else {
           entry = { id: newId(), type: 'block', status: 'active', date: body.date, start, end, label: clean(body.label, 100) || 'Blocked', createdAt: new Date().toISOString() };
         }
