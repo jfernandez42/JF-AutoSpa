@@ -147,7 +147,7 @@ export default async (req) => {
       const action = path.slice(6);
 
       if (action === 'schedule' && method === 'GET') {
-        const from = addDays(nyNow().date, -14);
+        const from = addDays(nyNow().date, -62);
         const all = await readAll();
         const list = all.filter(e => e.type !== 'weekly' && e.date >= from).sort((a, b) => a.date.localeCompare(b.date) || a.start - b.start);
         const weekly = all.filter(e => e.type === 'weekly' && e.status !== 'cancelled');
@@ -156,6 +156,34 @@ export default async (req) => {
       }
 
       const body = method === 'POST' ? await req.json().catch(() => ({})) : {};
+
+      if (action === 'complete' && method === 'POST') {
+        const amount = Math.round(Number(body.amount) * 100) / 100;
+        const METHODS = ['Cash', 'Venmo', 'Zelle', 'Card', 'Other'];
+        if (!isFinite(amount) || amount < 0 || amount > 100000) return json({ error: 'Enter the amount paid.' }, 400);
+        const payMethod = METHODS.includes(body.method) ? body.method : 'Other';
+        const res = await mutate(list => {
+          const i = list.findIndex(e => e.id === body.id && e.type === 'booking');
+          if (i < 0) return { error: 'Not found.', status: 404 };
+          if (list[i].status === 'cancelled') return { error: 'That booking was cancelled.', status: 400 };
+          const next = list.slice();
+          next[i] = { ...next[i], status: 'completed', paid: amount, payMethod, finalNote: clean(body.note, 300), completedAt: new Date().toISOString() };
+          return { list: next, verify: l => l.find(e => e.id === body.id)?.status === 'completed' };
+        });
+        return res.error ? json({ error: res.error }, res.status) : json({ ok: true });
+      }
+
+      if (action === 'reopen' && method === 'POST') {
+        const res = await mutate(list => {
+          const i = list.findIndex(e => e.id === body.id && e.type === 'booking');
+          if (i < 0) return { error: 'Not found.', status: 404 };
+          const next = list.slice();
+          const { paid, payMethod, finalNote, completedAt, ...rest } = next[i];
+          next[i] = { ...rest, status: 'booked' };
+          return { list: next, verify: l => l.find(e => e.id === body.id)?.status === 'booked' };
+        });
+        return res.error ? json({ error: res.error }, res.status) : json({ ok: true });
+      }
 
       if (action === 'cancel' && method === 'POST') {
         const res = await mutate(list => {

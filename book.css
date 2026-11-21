@@ -196,3 +196,17 @@
 .ad-days input:focus-visible + span { outline: 2px solid var(--amber); outline-offset: 2px; }
 .ad-steps { margin: 0; padding-left: 20px; font-size: .9375rem; line-height: 1.5; }
 .ad-steps li { margin-bottom: 10px; }
+.ad-job.is-done { border-left-color: #2e9e5b; }
+.ad-paid { color: #1f7a45 !important; font-weight: 800; }
+.ad-paid span { font-weight: 500; color: var(--muted); }
+.ad-overdue { color: #a15c00 !important; font-weight: 700; }
+.ad-acts .ad-complete { background: var(--amber); border-color: var(--amber); color: #000; }
+.ad-done-form { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.ad-done-form .field { margin-bottom: 10px; }
+.ad-pay { margin: 0 0 10px; }
+.ad-acts .ad-save { background: #1f7a45; border-color: #1f7a45; color: #fff; }
+.ad-earn { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0 6px; }
+.ad-earn div { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; }
+.ad-earn span { font-size: .6875rem; white-space: nowrap; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.ad-earn b { font-family: var(--font-display); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.ad-earn small { color: var(--muted); font-size: .8125rem; }

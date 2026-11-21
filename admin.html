@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#000000">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=20261112c">
-  <link rel="stylesheet" href="book.css?v=20261120b">
+  <link rel="stylesheet" href="book.css?v=20261121">
 </head>
 <body class="bk-body" style="padding-bottom:40px">
   <header class="topbar bk-top">
@@ -70,7 +70,7 @@
         <!-- schedule -->
         <div class="ad-tabs" role="tablist">
           <button type="button" class="is-on" data-view="upcoming">Upcoming</button>
-          <button type="button" data-view="past">Past 2 weeks</button>
+          <button type="button" data-view="past">Past &amp; earnings</button>
         </div>
         <div id="list"><p class="ad-empty">Loading…</p></div>
 
@@ -183,41 +183,87 @@
       b.disabled = true; b.textContent = 'Removing…';
       api('cancel', { id: b.dataset.cancel }).then(load).catch(function (e) { alertMsg(e.message); b.disabled = false; });
     });
+    function money(n) { return '$' + (Math.round(n * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }); }
+    function ymd(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+    function earnings() {
+      var p = data.today.split('-').map(Number), t = new Date(p[0], p[1] - 1, p[2]);
+      var wk = new Date(t); wk.setDate(t.getDate() - ((t.getDay() + 6) % 7));
+      var ranges = [['This week', ymd(wk)], ['This month', data.today.slice(0, 8) + '01'], ['Past 30 days', ymd(new Date(t.getTime() - 29 * 864e5))]];
+      var done = data.entries.filter(function (e) { return e.type === 'booking' && e.status === 'completed'; });
+      return '<div class="ad-earn">' + ranges.map(function (r) {
+        var xs = done.filter(function (e) { return e.date >= r[1] && e.date <= data.today; });
+        var sum = xs.reduce(function (a, e) { return a + (e.paid || 0); }, 0);
+        return '<div><span>' + r[0] + '</span><b>' + money(sum) + '</b><small>' + xs.length + ' job' + (xs.length === 1 ? '' : 's') + '</small></div>';
+      }).join('') + '</div>';
+    }
+    function completeForm(e) {
+      return '<form class="ad-done-form" data-complete="' + e.id + '">' +
+        '<div class="ad-row"><div class="field"><label>Amount paid</label><input name="amount" inputmode="decimal" placeholder="Estimate $' + e.lo + '–$' + e.hi + '" required></div></div>' +
+        '<div class="ad-days ad-pay">' + ['Cash', 'Venmo', 'Zelle', 'Card'].map(function (m, i) {
+          return '<label><input type="radio" name="method" value="' + m + '"' + (i === 0 ? ' checked' : '') + '><span>' + m + '</span></label>'; }).join('') + '</div>' +
+        '<div class="field"><label>Note <span class="bk-opt">(optional)</span></label><input name="note" placeholder="e.g. added pet hair, $20 tip"></div>' +
+        '<div class="ad-acts"><button type="submit" class="ad-save">Save as completed</button><button type="button" data-close="1">Close</button></div></form>';
+    }
     function render() {
       var today = data.today;
       var list = data.entries.filter(function (e) { return view === 'upcoming' ? e.date >= today : e.date < today; });
       if (view === 'past') list.reverse();
-      if (!list.length) { $('list').innerHTML = '<p class="ad-empty" style="margin-top:16px">' + (view === 'upcoming' ? 'No upcoming bookings yet.' : 'Nothing in the past 2 weeks.') + '</p>'; return; }
-      var h = '', cur = '';
+      var top = view === 'past' ? earnings() : '';
+      if (!list.length) { $('list').innerHTML = top + '<p class="ad-empty" style="margin-top:16px">' + (view === 'upcoming' ? 'No upcoming bookings yet.' : 'No past jobs yet.') + '</p>'; return; }
+      var h = top, cur = '';
       list.forEach(function (e) {
         if (e.date !== cur) {
           cur = e.date;
           var count = list.filter(function (x) { return x.date === cur && x.type === 'booking' && x.status !== 'cancelled'; }).length;
           h += '<h3 class="ad-day">' + (cur === today ? 'Today · ' : '') + dlabel(cur) + (count ? ' <small>· ' + count + ' job' + (count > 1 ? 's' : '') + '</small>' : '') + '</h3>';
         }
-        var cancelled = e.status === 'cancelled';
+        var cancelled = e.status === 'cancelled', done = e.status === 'completed';
         if (e.type === 'block') {
           h += '<div class="ad-job is-block' + (cancelled ? ' is-cancelled' : '') + '"><div class="ad-job-top"><b>' + esc(e.label) + (cancelled ? ' (removed)' : '') + '</b><span class="ad-time">' +
             (e.start === 0 && e.end >= 1440 ? 'All day' : t12(e.start) + '–' + t12(e.end)) + '</span></div>' +
             (cancelled ? '' : '<div class="ad-acts"><button type="button" class="ad-cancel" data-cancel="' + e.id + '" data-what="this block">Remove</button></div>') + '</div>';
           return;
         }
-        var addr = e.address + ', ' + e.zip;
-        h += '<div class="ad-job' + (cancelled ? ' is-cancelled' : '') + '"><div class="ad-job-top"><b>' + esc(e.name) + (cancelled ? ' (cancelled)' : '') + '</b>' +
+        var addr = e.address + ', ' + e.zip, tel = esc(e.phone.replace(/[^\d+]/g, ''));
+        var overdue = !done && !cancelled && e.date < today;
+        h += '<div class="ad-job' + (cancelled ? ' is-cancelled' : '') + (done ? ' is-done' : '') + '"><div class="ad-job-top"><b>' + esc(e.name) + (cancelled ? ' (cancelled)' : '') + '</b>' +
           '<span class="ad-time">' + t12(e.start) + '–' + t12(e.end) + '</span></div>' +
+          (done ? '<p class="ad-paid">✓ Completed · ' + money(e.paid || 0) + ' · ' + esc(e.payMethod || '') + (e.finalNote ? '<br><span>' + esc(e.finalNote) + '</span>' : '') + '</p>' : '') +
+          (overdue ? '<p class="ad-overdue">Not marked complete yet</p>' : '') +
           '<p><strong>' + esc(e.pkgName) + '</strong>' + (e.addonNames && e.addonNames.length ? ' + ' + esc(e.addonNames.join(', ')) : '') +
           ' · <strong>$' + e.lo + '–$' + e.hi + (e.plus ? '+' : '') + '</strong></p>' +
           '<p>' + esc(e.vehicle) + ' · ' + esc(e.parking || '') + ' · Inside: ' + esc(e.condition || '-') + '</p>' +
           '<p>' + esc(addr) + '</p>' +
           (e.notes ? '<p>Notes: ' + esc(e.notes) + '</p>' : '') +
           '<p>' + esc(e.phone) + (e.email ? ' · ' + esc(e.email) : '') + '</p>' +
-          (cancelled ? '' : '<div class="ad-acts"><a href="tel:' + esc(e.phone.replace(/[^\d+]/g, '')) + '">Call</a><a href="sms:' + esc(e.phone.replace(/[^\d+]/g, '')) + '">Text</a>' +
-          '<a href="https://maps.apple.com/?daddr=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener">Directions</a>' +
-          '<button type="button" class="ad-cancel" data-cancel="' + e.id + '" data-what="' + esc(e.name) + '\'s booking">Cancel</button></div>') +
+          (cancelled ? '' : '<div class="ad-acts">' +
+            (done ? '' : '<button type="button" class="ad-complete" data-open="' + e.id + '">Complete</button>') +
+            '<a href="tel:' + tel + '">Call</a><a href="sms:' + tel + '">Text</a>' +
+            (done ? '<button type="button" class="ad-cancel" data-reopen="' + e.id + '">Undo complete</button>'
+                  : '<a href="https://maps.apple.com/?daddr=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener">Directions</a>' +
+                    '<button type="button" class="ad-cancel" data-cancel="' + e.id + '" data-what="' + esc(e.name) + '\'s booking">Cancel</button>') +
+            '</div>' + (done ? '' : '<div class="ad-form-slot" data-slot="' + e.id + '"></div>')) +
           '</div>';
       });
       $('list').innerHTML = h;
     }
+    $('list').addEventListener('click', function (ev) {
+      var o = ev.target.closest('[data-open]');
+      if (o) { var slot = document.querySelector('[data-slot="' + o.dataset.open + '"]'); var e = data.entries.find(function (x) { return x.id === o.dataset.open; });
+        if (slot && e) { slot.innerHTML = slot.innerHTML ? '' : completeForm(e); var inp = slot.querySelector('input[name=amount]'); if (inp) inp.focus(); } return; }
+      var c = ev.target.closest('[data-close]'); if (c) { c.closest('.ad-form-slot').innerHTML = ''; return; }
+      var r = ev.target.closest('[data-reopen]');
+      if (r) { if (!confirmInline(r)) return; r.disabled = true; api('reopen', { id: r.dataset.reopen }).then(load).catch(function (e) { alertMsg(e.message); r.disabled = false; }); }
+    });
+    $('list').addEventListener('submit', function (ev) {
+      var f = ev.target.closest('[data-complete]'); if (!f) return;
+      ev.preventDefault();
+      var amt = parseFloat(String(f.amount.value).replace(/[^0-9.]/g, ''));
+      if (!isFinite(amt)) { f.amount.classList.add('is-bad'); f.amount.focus(); return; }
+      var btn = f.querySelector('.ad-save'); btn.disabled = true; btn.textContent = 'Saving…';
+      api('complete', { id: f.dataset.complete, amount: amt, method: f.querySelector('input[name=method]:checked').value, note: f.note.value })
+        .then(load).catch(function (e) { alertMsg(e.message); btn.disabled = false; btn.textContent = 'Save as completed'; });
+    });
 
     $('login').addEventListener('submit', function (ev) {
       ev.preventDefault(); KEY = $('pass').value.trim();
