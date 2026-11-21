@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=20261112c">
-  <link rel="stylesheet" href="book.css?v=20261121b">
+  <link rel="stylesheet" href="book.css?v=20261121c">
 </head>
 <body class="bk-body">
 
@@ -46,11 +46,16 @@
 
       <!-- STEP 1: package + add-ons -->
       <section class="bk-step" data-step="1">
-        <h2>Choose a package</h2>
+        <div class="bk-cars" id="cars" hidden></div>
+        <h2 id="pkg-title">Choose a package</h2>
         <div class="bk-pkgs" id="pkgs"><p class="bk-loading">Loading packages…</p></div>
         <div id="addon-wrap" hidden>
-          <h2 class="bk-h2-gap">Add-ons <span class="bk-opt">(optional)</span></h2>
+          <h2 class="bk-h2-gap" id="addon-title">Add-ons <span class="bk-opt">(optional)</span></h2>
           <div id="addons"></div>
+        </div>
+        <div class="bk-addcar" id="addcar-wrap" hidden>
+          <button type="button" class="bk-addcar-btn" id="add-car">+ Add another car</button>
+          <span>Have more than one car? We'll do them back to back in the same visit.</span>
         </div>
       </section>
 
@@ -78,9 +83,9 @@
             <div class="field"><label for="f-address">Street address and town</label><input id="f-address" name="address" autocomplete="street-address" placeholder="12 Main St, Garden City" required></div>
             <div class="field"><label for="f-zip">ZIP code</label><input id="f-zip" name="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required></div>
           </div>
-          <div class="field"><label for="f-vehicle">Vehicle</label><input id="f-vehicle" name="vehicle" placeholder="Year, make, model, color" required></div>
+          <div id="vehicles"></div>
           <div class="field-row">
-            <div class="field"><label for="f-parking">Where will the car be?</label>
+            <div class="field"><label for="f-parking" id="parking-label">Where will the car be?</label>
               <select id="f-parking" name="parking" required>
                 <option value="">Choose one</option><option>Driveway</option><option>Street</option><option>Garage</option><option>Apartment or office lot</option>
               </select></div>
@@ -135,18 +140,66 @@
   (function () {
     var API = '/api';
     var FORM_EMAIL = 'https://formsubmit.co/ajax/jfernandez42@icloud.com';
-    var S = { step: 1, pkg: null, addons: [], date: null, time: null, slots: null, slotsKey: '', cat: null, viewMonth: null, sending: false };
+    var S = { step: 1, pkg: null, addons: [], cars: [{ pkg: null, addons: [] }], ci: 0, date: null, time: null, slots: null, slotsKey: '', cat: null, viewMonth: null, sending: false };
     var $ = function (id) { return document.getElementById(id); };
     var money = function (n) { return '$' + n.toLocaleString('en-US'); };
 
-    function q() {
-      if (!S.cat || !S.pkg) return null;
-      var p = S.cat.packages.find(function (x) { return x.id === S.pkg; });
-      var adds = S.addons.map(function (id) { return S.cat.addons.find(function (a) { return a.id === id; }); });
+    var MAX_CARS = 4;
+    function sync() { S.cars[S.ci] = { pkg: S.pkg, addons: S.addons }; }
+    function qCar(c) {
+      var p = S.cat.packages.find(function (x) { return x.id === c.pkg; });
+      if (!p) return null;
+      var adds = c.addons.map(function (id) { return S.cat.addons.find(function (a) { return a.id === id; }); });
       var r = { pkg: p, adds: adds, mins: p.mins, lo: p.lo, hi: p.hi, plus: false };
       adds.forEach(function (a) { r.mins += a.mins; r.lo += a.lo; r.hi += a.hi; if (a.plus) r.plus = true; });
       return r;
     }
+    // Combined quote for every car that has a package picked
+    function q() {
+      if (!S.cat) return null;
+      sync();
+      var cars = S.cars.map(qCar);
+      if (!cars.length || cars.some(function (c) { return !c; })) return null;
+      var r = { cars: cars, pkg: cars[0].pkg, adds: cars[0].adds, mins: 0, lo: 0, hi: 0, plus: false };
+      cars.forEach(function (c) { r.mins += c.mins; r.lo += c.lo; r.hi += c.hi; if (c.plus) r.plus = true; });
+      return r;
+    }
+    function carsParam() { sync(); return S.cars.map(function (c) { return c.pkg + ':' + c.addons.join(','); }).join(';'); }
+    function renderCars() {
+      sync();
+      var many = S.cars.length > 1;
+      $('cars').hidden = !many;
+      $('cars').innerHTML = S.cars.map(function (c, i) {
+        var p = S.cat.packages.find(function (x) { return x.id === c.pkg; });
+        return '<button type="button" class="bk-car' + (i === S.ci ? ' is-on' : '') + (p ? '' : ' is-empty') + '" data-car="' + i + '">' +
+          '<b>Car ' + (i + 1) + '</b><span>' + (p ? esc(p.name) + (c.addons.length ? ' + ' + c.addons.length : '') : 'Pick a package') + '</span>' +
+          '<i class="bk-car-x" data-remove="' + i + '" role="button" aria-label="Remove car ' + (i + 1) + '">×</i></button>';
+      }).join('');
+      $('pkg-title').textContent = many ? 'Choose a package for Car ' + (S.ci + 1) : 'Choose a package';
+      $('addon-title').innerHTML = (many ? 'Add-ons for Car ' + (S.ci + 1) : 'Add-ons') + ' <span class="bk-opt">(optional)</span>';
+      var allPicked = S.cars.every(function (c) { return c.pkg; });
+      $('addcar-wrap').hidden = !allPicked || S.cars.length >= MAX_CARS;
+    }
+    function selectCar(i) {
+      sync(); S.ci = i; S.pkg = S.cars[i].pkg; S.addons = S.cars[i].addons;
+      renderPkgs(); renderAddons(); renderCars(); update();
+    }
+    $('cars').addEventListener('click', function (e) {
+      var x = e.target.closest('[data-remove]');
+      if (x) {
+        sync(); var i = +x.dataset.remove; S.cars.splice(i, 1);
+        var next = Math.min(S.ci > i ? S.ci - 1 : S.ci, S.cars.length - 1);
+        S.ci = -1; S.ci = next; S.pkg = S.cars[next].pkg; S.addons = S.cars[next].addons;
+        resetTime(); renderPkgs(); renderAddons(); renderCars(); update(); return;
+      }
+      var b = e.target.closest('[data-car]'); if (b) selectCar(+b.dataset.car);
+    });
+    $('add-car').addEventListener('click', function () {
+      sync(); if (S.cars.length >= MAX_CARS) return;
+      S.cars.push({ pkg: null, addons: [] }); resetTime();
+      selectCar(S.cars.length - 1);
+      $('cars').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
     function dur(m) { var h = Math.floor(m / 60), r = m % 60; return (h ? h + ' hr' : '') + (h && r ? ' ' : '') + (r ? r + ' min' : ''); }
     function price(r) { return (r.lo === r.hi ? money(r.lo) : money(r.lo) + '–' + money(r.hi)) + (r.plus ? '+' : ''); }
     function fmtTime(hhmm) { var h = +hhmm.slice(0, 2), m = hhmm.slice(3); return ((h + 11) % 12 + 1) + ':' + m + (h < 12 ? ' AM' : ' PM'); }
@@ -182,23 +235,23 @@
     }
     $('pkgs').addEventListener('change', function (e) {
       if (e.target.name !== 'pkg') return;
-      S.pkg = e.target.value; renderAddons(); resetTime(); update();
+      S.pkg = e.target.value; renderAddons(); resetTime(); renderCars(); update();
     });
     $('addons').addEventListener('change', function (e) {
       if (e.target.type !== 'checkbox') return;
       var id = e.target.value, i = S.addons.indexOf(id);
       if (e.target.checked && i < 0) S.addons.push(id);
       if (!e.target.checked && i > -1) S.addons.splice(i, 1);
-      resetTime(); update();
+      resetTime(); renderCars(); update();
     });
     function resetTime() { S.time = null; }
 
     // ---------- step 2 ----------
     function loadSlots() {
-      var key = S.pkg + '|' + S.addons.slice().sort().join(',');
+      var key = carsParam();
       if (S.slots && S.slotsKey === key) { renderCal(); return Promise.resolve(); }
       $('cal').innerHTML = '<p class="bk-loading">Finding open times…</p>'; $('times-wrap').hidden = true;
-      return fetch(API + '/slots?pkg=' + encodeURIComponent(S.pkg) + '&addons=' + encodeURIComponent(S.addons.join(',')))
+      return fetch(API + '/slots?cars=' + encodeURIComponent(key))
         .then(function (r) { return r.json(); })
         .then(function (d) {
           if (d.error) throw new Error(d.error);
@@ -255,7 +308,20 @@
 
     // ---------- step 3 ----------
     var F = $('details');
-    function details() { var o = {}; new FormData(F).forEach(function (v, k) { o[k] = String(v).trim(); }); return o; }
+    function details() {
+      var o = {}; new FormData(F).forEach(function (v, k) { o[k] = String(v).trim(); });
+      o.vehicles = S.cars.map(function (_, i) { return o['vehicle' + i] || ''; });
+      o.vehicle = o.vehicles.join(' · ');
+      return o;
+    }
+    function renderVehicles() {
+      var r = q(), keep = details().vehicles;
+      $('vehicles').innerHTML = S.cars.map(function (c, i) {
+        var label = S.cars.length > 1 ? 'Car ' + (i + 1) + ' <span class="bk-opt">(' + esc(r.cars[i].pkg.name) + ')</span>' : 'Vehicle';
+        return '<div class="field"><label for="f-vehicle' + i + '">' + label + '</label><input id="f-vehicle' + i + '" name="vehicle' + i + '" placeholder="Year, make, model, color" value="' + esc(keep[i] || '') + '" required></div>';
+      }).join('');
+      $('parking-label').textContent = S.cars.length > 1 ? 'Where will the cars be?' : 'Where will the car be?';
+    }
     function detailsOk(show) {
       var d = details(), bad = null;
       if (!d.name) bad = 'f-name';
@@ -263,7 +329,7 @@
       else if (d.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)) bad = 'f-email';
       else if (!d.address) bad = 'f-address';
       else if (!/^\d{5}$/.test(d.zip)) bad = 'f-zip';
-      else if (!d.vehicle) bad = 'f-vehicle';
+      else if (d.vehicles.some(function (v, i) { if (!v && !bad) bad = 'f-vehicle' + i; return !v; })) {}
       else if (!d.parking) bad = 'f-parking';
       else if (!d.condition) bad = 'f-condition';
       if (show) {
@@ -278,20 +344,23 @@
     // ---------- step 4 ----------
     function reviewHtml(r, d, date, time) {
       var rows = [
-        ['Service', esc(r.pkg.name) + (r.adds.length ? '<br><small>+ ' + r.adds.map(function (a) { return esc(a.name); }).join(', ') + '</small>' : '')],
+        r.cars.length > 1
+          ? ['Cars', r.cars.map(function (c, i) { return '<b>Car ' + (i + 1) + ':</b> ' + esc(c.pkg.name) + ' · ' + esc(d.vehicles[i] || '') +
+              (c.adds.length ? '<br><small>+ ' + c.adds.map(function (a) { return esc(a.name); }).join(', ') + '</small>' : ''); }).join('<br>')]
+          : ['Service', esc(r.pkg.name) + (r.adds.length ? '<br><small>+ ' + r.adds.map(function (a) { return esc(a.name); }).join(', ') + '</small>' : '')],
         ['When', fmtDate(date) + ' at ' + fmtTime(time)],
         ['Estimate', price(r) + ' <small>· about ' + dur(r.mins) + '</small>'],
         ['Where', esc(d.address) + ', ' + esc(d.zip) + '<br><small>' + esc(d.parking) + '</small>'],
-        ['Vehicle', esc(d.vehicle)],
+        r.cars.length > 1 ? null : ['Vehicle', esc(d.vehicle)],
         ['Contact', esc(d.name) + '<br><small>' + esc(d.phone) + (d.email ? ' · ' + esc(d.email) : '') + '</small>']
       ];
       if (d.notes) rows.push(['Notes', esc(d.notes)]);
-      return rows.map(function (x) { return '<div><dt>' + x[0] + '</dt><dd>' + x[1] + '</dd></div>'; }).join('');
+      return rows.filter(Boolean).map(function (x) { return '<div><dt>' + x[0] + '</dt><dd>' + x[1] + '</dd></div>'; }).join('');
     }
 
     // ---------- flow ----------
     function canNext() {
-      if (S.step === 1) return !!S.pkg;
+      if (S.step === 1) return !!q();
       if (S.step === 2) return !!(S.date && S.time);
       if (S.step === 3) return true;
       if (S.step === 4) return !S.sending;
@@ -300,9 +369,11 @@
     function update() {
       var r = q();
       if (r) {
-        $('sum').innerHTML = '<b>' + esc(r.pkg.name) + (r.adds.length ? ' + ' + r.adds.length + ' add-on' + (r.adds.length > 1 ? 's' : '') : '') + '</b>' +
+        var nAdds = r.cars.reduce(function (n, c) { return n + c.adds.length; }, 0);
+        $('sum').innerHTML = '<b>' + (r.cars.length > 1 ? r.cars.length + ' cars' : esc(r.pkg.name)) + (nAdds ? ' + ' + nAdds + ' add-on' + (nAdds > 1 ? 's' : '') : '') + '</b>' +
           '<span>' + price(r) + (S.date && S.time && S.step > 1 ? ' · ' + dateObj(S.date).toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' }) + ' ' + fmtTime(S.time) : ' · about ' + dur(r.mins)) + '</span>';
       }
+      if (!r && S.cars.length > 1) $('sum').innerHTML = '<b>Car ' + (S.ci + 1) + ': choose a package</b><span>Every car needs a package.</span>';
       $('next').disabled = !canNext();
       $('next').textContent = S.step === 4 ? (S.sending ? 'Booking…' : 'Book it') : 'Continue';
       $('back').hidden = S.step === 1;
@@ -312,6 +383,7 @@
       document.querySelectorAll('[data-step]').forEach(function (s) { s.hidden = +s.dataset.step !== step; });
       document.querySelectorAll('[data-step-dot]').forEach(function (s) { var n = +s.dataset.stepDot; s.classList.toggle('is-on', n === step); s.classList.toggle('is-done', n < step); });
       if (step === 2) loadSlots();
+      if (step === 3) renderVehicles();
       if (step === 4) $('review').innerHTML = reviewHtml(q(), details(), S.date, S.time);
       update(); window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -328,7 +400,8 @@
       if (S.sending) return;
       S.sending = true; update();
       var d = details(), r = q();
-      var body = Object.assign({}, d, { pkg: S.pkg, addons: S.addons, date: S.date, time: S.time });
+      sync();
+      var body = Object.assign({}, d, { cars: S.cars.map(function (c) { return { pkg: c.pkg, addons: c.addons }; }), vehicles: d.vehicles, date: S.date, time: S.time });
       fetch(API + '/book', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
         .then(function (res) { return res.json().then(function (j) { return { status: res.status, j: j }; }); })
         .then(function (x) {
@@ -353,22 +426,22 @@
       var en = String(Math.floor(endMin / 60)).padStart(2, '0') + String(endMin % 60).padStart(2, '0') + '00';
       var ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//JF AutoSpa//Booking//EN', 'BEGIN:VEVENT', 'UID:' + b.id + '@jfautospa.com',
         'DTSTART;TZID=America/New_York:' + p + 'T' + st, 'DTEND;TZID=America/New_York:' + p + 'T' + en,
-        'SUMMARY:JF AutoSpa – ' + r.pkg.name, 'LOCATION:' + (d.address + ', ' + d.zip).replace(/[,;]/g, '\\$&'),
+        'SUMMARY:JF AutoSpa – ' + (r.cars.length > 1 ? r.cars.length + ' cars' : r.pkg.name), 'LOCATION:' + (d.address + ', ' + d.zip).replace(/[,;]/g, '\\$&'),
         'DESCRIPTION:Questions or changes? Call or text (516) 567-9885.', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
       $('ics').href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
       // email notice to JF AutoSpa (+ confirmation to the customer when they gave an email)
       var mail = {
-        _subject: 'New booking: ' + r.pkg.name + ' – ' + fmtDate(S.date) + ' ' + fmtTime(S.time),
+        _subject: 'New booking: ' + (r.cars.length > 1 ? r.cars.length + ' cars' : r.pkg.name) + ' – ' + fmtDate(S.date) + ' ' + fmtTime(S.time),
         _template: 'table', _captcha: 'false',
         Name: d.name, Phone: d.phone, When: fmtDate(S.date) + ' at ' + fmtTime(S.time),
-        Package: r.pkg.name, 'Add-ons': r.adds.map(function (a) { return a.name; }).join(', ') || 'None',
+        Package: r.cars.map(function (c, i) { return (r.cars.length > 1 ? 'Car ' + (i + 1) + ': ' : '') + c.pkg.name + (c.adds.length ? ' + ' + c.adds.map(function (a) { return a.name; }).join(', ') : ''); }).join(' | '),
         Estimate: price(r), 'Time needed': dur(r.mins), Address: d.address + ', ' + d.zip, Vehicle: d.vehicle,
         Parking: d.parking, Condition: d.condition, Notes: d.notes || '-'
       };
       if (d.email) {
         mail.email = d.email;
-        mail._autoresponse = 'Thanks for booking with JF AutoSpa! You\'re set for ' + fmtDate(S.date) + ' at ' + fmtTime(S.time) + ' (' + r.pkg.name +
-          (r.adds.length ? ' + ' + r.adds.map(function (a) { return a.name; }).join(', ') : '') + '). Estimate ' + price(r) +
+        mail._autoresponse = 'Thanks for booking with JF AutoSpa! You\'re set for ' + fmtDate(S.date) + ' at ' + fmtTime(S.time) + ' (' +
+          r.cars.map(function (c) { return c.pkg.name + (c.adds.length ? ' + ' + c.adds.map(function (a) { return a.name; }).join(', ') : ''); }).join('; ') + '). Estimate ' + price(r) +
           ', confirmed when we see the car. We bring our own water and power. Pay after with cash, Venmo, or Zelle. Need to change anything? Text (516) 567-9885.';
       }
       fetch(FORM_EMAIL, { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify(mail) }).catch(function () {});
@@ -379,7 +452,7 @@
       S.cat = c;
       var want = new URLSearchParams(location.search).get('pkg');
       if (want && c.packages.some(function (p) { return p.id === want; })) S.pkg = want;
-      renderPkgs(); if (S.pkg) renderAddons(); update();
+      renderPkgs(); if (S.pkg) renderAddons(); renderCars(); update();
     }).catch(function () {
       $('pkgs').innerHTML = '<p class="bk-loading">Booking is unavailable right now. Please call or text <a href="tel:+15165679885">(516) 567-9885</a>.</p>';
     });

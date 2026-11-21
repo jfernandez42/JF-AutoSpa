@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#000000">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=20261112c">
-  <link rel="stylesheet" href="book.css?v=20261121b">
+  <link rel="stylesheet" href="book.css?v=20261121c">
 </head>
 <body class="bk-body" style="padding-bottom:40px">
   <header class="topbar bk-top">
@@ -326,9 +326,10 @@
           '<span class="ad-time">' + t12(e.start) + '–' + t12(e.end) + '</span></div>' +
           (done ? '<p class="ad-paid">✓ Completed · ' + money(e.paid || 0) + ' · ' + esc(e.payMethod || '') + (e.finalNote ? '<br><span>' + esc(e.finalNote) + '</span>' : '') + '</p>' : '') +
           (overdue ? '<p class="ad-overdue">Not marked complete yet</p>' : '') +
-          '<p><strong>' + esc(e.pkgName) + '</strong>' + (e.addonNames && e.addonNames.length ? ' + ' + esc(e.addonNames.join(', ')) : '') +
+          (e.cars ? e.cars.map(function (c, i) { return '<p class="ad-car"><strong>Car ' + (i + 1) + ': ' + esc(c.pkgName) + '</strong>' + (c.addonNames.length ? ' + ' + esc(c.addonNames.join(', ')) : '') + '<br>' + esc(c.vehicle || '') + '</p>'; }).join('') : '') +
+          '<p><strong>' + esc(e.cars ? e.cars.length + ' cars · total' : e.pkgName) + '</strong>' + (!e.cars && e.addonNames && e.addonNames.length ? ' + ' + esc(e.addonNames.join(', ')) : '') +
           ' · <strong>' + (e.lo === e.hi ? money(e.lo) : '$' + e.lo + '–$' + e.hi) + (e.plus ? '+' : '') + '</strong>' + (e.source === 'manual' ? ' <span class="ad-tag">Added by you</span>' : '') + '</p>' +
-          (e.vehicle || e.parking || e.condition ? '<p>' + [esc(e.vehicle), esc(e.parking), e.condition ? 'Inside: ' + esc(e.condition) : ''].filter(Boolean).join(' · ') + '</p>' : '') +
+          (e.vehicle || e.parking || e.condition ? '<p>' + [e.cars ? '' : esc(e.vehicle), esc(e.parking), e.condition ? 'Inside: ' + esc(e.condition) : ''].filter(Boolean).join(' · ') + '</p>' : '') +
           (e.address || e.zip ? '<p>' + esc([e.address, e.zip].filter(Boolean).join(', ')) + '</p>' : '') +
           (e.notes ? '<p>Notes: ' + esc(e.notes) + '</p>' : '') +
           (e.phone || e.email ? '<p>' + esc(e.phone) + (e.email ? (e.phone ? ' · ' : '') + esc(e.email) : '') + '</p>' : '') +

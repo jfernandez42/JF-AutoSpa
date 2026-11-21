@@ -74,6 +74,21 @@ async function sendAlert(msg) {
   } catch (e) { console.error('alert failed', e); return false; } finally { clearTimeout(t); }
 }
 
+// Several cars in one visit: [{pkg, addons}] -> combined quote (cars done back to back, no buffer between them)
+const MAX_CARS = 4;
+function quoteCars(cars) {
+  if (!Array.isArray(cars) || !cars.length || cars.length > MAX_CARS) return null;
+  const qs = cars.map(c => c && quote(c.pkg, c.addons));
+  if (qs.some(x => !x)) return null;
+  return { cars: qs, mins: qs.reduce((s, x) => s + x.mins, 0), lo: qs.reduce((s, x) => s + x.lo, 0),
+    hi: qs.reduce((s, x) => s + x.hi, 0), plus: qs.some(x => x.plus) };
+}
+function parseCarsParam(v) { // "signature:pet,wax;fresh:"
+  return String(v || '').split(';').filter(Boolean).map(part => {
+    const [pkg, adds] = part.split(':'); return { pkg, addons: (adds || '').split(',').filter(Boolean) };
+  });
+}
+
 export default async (req) => {
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/api\/?/, '').replace(/\/$/, '');
@@ -87,7 +102,9 @@ export default async (req) => {
     }
 
     if (path === 'slots' && method === 'GET') {
-      const q = quote(url.searchParams.get('pkg'), (url.searchParams.get('addons') || '').split(',').filter(Boolean));
+      const q = url.searchParams.get('cars')
+        ? quoteCars(parseCarsParam(url.searchParams.get('cars')))
+        : quote(url.searchParams.get('pkg'), (url.searchParams.get('addons') || '').split(',').filter(Boolean));
       if (!q) return json({ error: 'Unknown package or add-on.' }, 400);
       const list = await readAll();
       return json({ today: nyNow().date, mins: q.mins, days: allSlots(q.mins, list) });
@@ -97,19 +114,26 @@ export default async (req) => {
       const b = await req.json().catch(() => null);
       if (!b) return json({ error: 'Bad request.' }, 400);
       if (b.website) return json({ ok: true, id: 'x' }); // honeypot: pretend success
-      const q = quote(b.pkg, b.addons);
+      const q = quoteCars(Array.isArray(b.cars) ? b.cars : [{ pkg: b.pkg, addons: b.addons }]);
       if (!q) return json({ error: 'Please choose a package again.' }, 400);
       const start = fromHHMM(b.time);
       if (!isDate(b.date) || start === null) return json({ error: 'Please choose a date and time.' }, 400);
       const name = clean(b.name, 80), phone = clean(b.phone, 30), email = clean(b.email, 120);
-      const address = clean(b.address, 160), zip = clean(b.zip, 10), vehicle = clean(b.vehicle, 100);
+      const address = clean(b.address, 160), zip = clean(b.zip, 10);
+      const vehicles = q.cars.map((_, i) => clean(Array.isArray(b.vehicles) ? b.vehicles[i] : (i === 0 ? b.vehicle : ''), 100));
+      const vehicle = vehicles.every(Boolean) ? vehicles.join(' · ') : '';
       if (!name || phone.replace(/\D/g, '').length < 10 || !address || !/^\d{5}$/.test(zip) || !vehicle)
         return json({ error: 'Please fill in your name, phone, address, ZIP code and vehicle.' }, 400);
       if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return json({ error: 'That email address looks off.' }, 400);
       const entry = {
         id: newId(), type: 'booking', status: 'booked', createdAt: new Date().toISOString(),
         date: b.date, start, end: start + q.mins,
-        pkg: q.pkg.id, pkgName: q.pkg.name, addons: q.addons.map(a => a.id), addonNames: q.addons.map(a => a.name),
+        pkg: q.cars[0].pkg.id,
+        pkgName: q.cars.length > 1 ? `${q.cars.length} cars: ${q.cars.map(c => c.pkg.name).join(' + ')}` : q.cars[0].pkg.name,
+        addons: q.cars.length > 1 ? [] : q.cars[0].addons.map(a => a.id),
+        addonNames: q.cars.length > 1 ? [] : q.cars[0].addons.map(a => a.name),
+        cars: q.cars.length > 1 ? q.cars.map((c, i) => ({ pkg: c.pkg.id, pkgName: c.pkg.name, addons: c.addons.map(a => a.id),
+          addonNames: c.addons.map(a => a.name), vehicle: vehicles[i], lo: c.lo, hi: c.hi, plus: c.plus, mins: c.mins })) : undefined,
         lo: q.lo, hi: q.hi, plus: q.plus,
         name, phone, email, address, zip, vehicle,
         parking: clean(b.parking, 40), condition: clean(b.condition, 40), notes: cleanMulti(b.notes, 1000)
@@ -122,8 +146,11 @@ export default async (req) => {
       await sendAlert({
         title: `New booking: ${entry.pkgName}`,
         message: `${when(entry.date, entry.start)} · ${entry.name}\n${entry.address}, ${entry.zip}\n` +
-          (entry.addonNames.length ? `+ ${entry.addonNames.join(', ')}\n` : '') +
-          `Est. $${entry.lo}–$${entry.hi}${entry.plus ? '+' : ''} · ${entry.vehicle}\n${entry.phone}`
+          (entry.cars
+            ? entry.cars.map((c, i) => `Car ${i + 1}: ${c.pkgName}${c.addonNames.length ? ' + ' + c.addonNames.join(', ') : ''} · ${c.vehicle}`).join('\n') + '\n' +
+              `Est. $${entry.lo}–$${entry.hi}${entry.plus ? '+' : ''} total\n`
+            : (entry.addonNames.length ? `+ ${entry.addonNames.join(', ')}\n` : '') + `Est. $${entry.lo}–$${entry.hi}${entry.plus ? '+' : ''} · ${entry.vehicle}\n`) +
+          entry.phone
       });
       return json({ ok: true, booking: entry });
     }
@@ -184,7 +211,8 @@ export default async (req) => {
       if (action === 'export' && method === 'GET') {
         const done = (await readAll()).filter(e => e.type === 'booking' && e.status === 'completed')
           .map(e => ({ id: e.id, date: e.date, time: `${String(Math.floor(e.start / 60)).padStart(2, '0')}:${String(e.start % 60).padStart(2, '0')}`,
-            pkgName: e.pkgName, addonNames: e.addonNames || [], paid: e.paid, payMethod: e.payMethod, finalNote: e.finalNote || '',
+            pkgName: e.pkgName, addonNames: e.cars ? e.cars.flatMap(c => c.addonNames) : (e.addonNames || []), paid: e.paid,
+            vehicles: e.cars ? e.cars.map(c => c.vehicle).filter(Boolean) : (e.vehicle ? [e.vehicle] : []), payMethod: e.payMethod, finalNote: e.finalNote || '',
             name: e.name, phone: e.phone, email: e.email || '', address: e.address || '', zip: e.zip || '', vehicle: e.vehicle || '',
             notes: e.notes || '', source: e.source || 'website' }));
         return json({ jobs: done });

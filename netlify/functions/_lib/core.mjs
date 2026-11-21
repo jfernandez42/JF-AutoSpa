@@ -115,7 +115,9 @@ export function icsCalendar(entries, name = 'JF AutoSpa bookings') {
     }
     const title = e.type === 'booking' ? `${e.pkgName} – ${e.name}` : (e.label || 'Blocked');
     const desc = e.type === 'booking'
-      ? [`${e.phone}${e.email ? ' · ' + e.email : ''}`, `Vehicle: ${e.vehicle}`, `Add-ons: ${e.addonNames?.length ? e.addonNames.join(', ') : 'none'}`,
+      ? [`${e.phone}${e.email ? ' · ' + e.email : ''}`,
+         ...(e.cars ? e.cars.map((c, i) => `Car ${i + 1}: ${c.pkgName}${c.addonNames.length ? ' + ' + c.addonNames.join(', ') : ''} · ${c.vehicle}`)
+                    : [`Vehicle: ${e.vehicle}`, `Add-ons: ${e.addonNames?.length ? e.addonNames.join(', ') : 'none'}`]),
          `Estimate: $${e.lo}–$${e.hi}${e.plus ? '+' : ''}`, `Parking: ${e.parking || '-'}`, `Condition: ${e.condition || '-'}`, e.notes ? `Notes: ${e.notes}` : ''].filter(Boolean).join('\n')
       : '';
     lines.push('BEGIN:VEVENT', `UID:${e.id}@jfautospa.com`, `DTSTAMP:${stamp}`,
