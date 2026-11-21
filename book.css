@@ -194,3 +194,5 @@
 .ad-days span { display: inline-flex; align-items: center; min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--white); font-weight: 700; font-size: .875rem; }
 .ad-days input:checked + span { background: var(--ink); color: var(--white); border-color: var(--ink); }
 .ad-days input:focus-visible + span { outline: 2px solid var(--amber); outline-offset: 2px; }
+.ad-steps { margin: 0; padding-left: 20px; font-size: .9375rem; line-height: 1.5; }
+.ad-steps li { margin-bottom: 10px; }

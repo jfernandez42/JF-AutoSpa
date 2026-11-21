@@ -51,6 +51,29 @@ function isFree(list, entry) {
   return free.includes(String(Math.floor(entry.start / 60)).padStart(2, '0') + ':' + String(entry.start % 60).padStart(2, '0'));
 }
 
+// ---------- phone alerts (ntfy.sh) ----------
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function when(date, min) {
+  const [y, m, d] = date.split('-').map(Number);
+  const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  const h = Math.floor(min / 60), mm = String(min % 60).padStart(2, '0');
+  return `${DAYS[wd]} ${MONTHS[m - 1]} ${d}, ${((h + 11) % 12) + 1}:${mm} ${h < 12 ? 'AM' : 'PM'}`;
+}
+async function sendAlert(msg) {
+  const cfg = await store().get('notify', { type: 'json' });
+  if (!cfg || !cfg.topic) return false;
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 4000);
+  try {
+    const r = await fetch('https://ntfy.sh/', {
+      method: 'POST', signal: ctl.signal, headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ topic: cfg.topic, priority: 4, tags: ['car'], click: 'https://jfautospa.com/admin.html', ...msg })
+    });
+    return r.ok;
+  } catch (e) { console.error('alert failed', e); return false; } finally { clearTimeout(t); }
+}
+
 export default async (req) => {
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/api\/?/, '').replace(/\/$/, '');
@@ -96,6 +119,12 @@ export default async (req) => {
         return { list: [...list, entry], verify: l => l.some(e => e.id === entry.id) };
       });
       if (res.error) return json({ error: res.error }, res.status || 400);
+      await sendAlert({
+        title: `New booking: ${entry.pkgName}`,
+        message: `${when(entry.date, entry.start)} · ${entry.name}\n${entry.address}, ${entry.zip}\n` +
+          (entry.addonNames.length ? `+ ${entry.addonNames.join(', ')}\n` : '') +
+          `Est. $${entry.lo}–$${entry.hi}${entry.plus ? '+' : ''} · ${entry.vehicle}\n${entry.phone}`
+      });
       return json({ ok: true, booking: entry });
     }
 
@@ -154,6 +183,28 @@ export default async (req) => {
         }
         const res = await mutate(list => ({ list: [...list, entry], verify: l => l.some(e => e.id === entry.id) }));
         return res.error ? json({ error: res.error }, res.status) : json({ ok: true, entry });
+      }
+
+      if (action === 'notify' && method === 'GET') {
+        const cfg = await store().get('notify', { type: 'json' });
+        return json({ topic: cfg && cfg.topic || '' });
+      }
+      if (action === 'notify' && method === 'POST') {
+        if (body.action === 'enable') {
+          let cfg = await store().get('notify', { type: 'json' });
+          if (!cfg || !cfg.topic || body.reset) {
+            const rnd = Array.from(crypto.getRandomValues(new Uint8Array(12)), b => 'abcdefghijkmnpqrstuvwxyz23456789'[b % 32]).join('');
+            cfg = { topic: 'jfautospa-' + rnd, at: new Date().toISOString() };
+            await store().setJSON('notify', cfg);
+          }
+          return json({ ok: true, topic: cfg.topic });
+        }
+        if (body.action === 'disable') { await store().setJSON('notify', {}); return json({ ok: true, topic: '' }); }
+        if (body.action === 'test') {
+          const ok = await sendAlert({ title: 'JF AutoSpa alerts are on', message: 'You\'ll get a notification like this whenever someone books online.' });
+          return ok ? json({ ok: true }) : json({ error: 'Could not send. Turn alerts on first.' }, 400);
+        }
+        return json({ error: 'Unknown action.' }, 400);
       }
 
       if (action === 'today' && method === 'POST') {

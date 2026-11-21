@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#000000">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=20261112c">
-  <link rel="stylesheet" href="book.css?v=20261120">
+  <link rel="stylesheet" href="book.css?v=20261120b">
 </head>
 <body class="bk-body" style="padding-bottom:40px">
   <header class="topbar bk-top">
@@ -34,6 +34,28 @@
 
       <div id="app" hidden>
         <!-- today's town -->
+        <div class="ad-card" id="alerts">
+          <h2>Booking alerts on your phone</h2>
+          <div id="al-off">
+            <p class="bk-note" style="margin:0 0 12px">Get a notification the moment someone books online, with their name, package, time and town. Uses the free <b>ntfy</b> app.</p>
+            <button class="btn" type="button" id="al-on">Turn on alerts</button>
+          </div>
+          <div id="al-setup" hidden>
+            <ol class="ad-steps">
+              <li>Install <b>ntfy</b> from the App Store (search "ntfy") and open it. Allow notifications when it asks.</li>
+              <li>Tap <b>+</b> to subscribe, and paste this topic name. Leave the server as ntfy.sh.
+                <div class="ad-copy" style="margin-top:8px"><input id="al-topic" readonly aria-label="Topic name"><button class="bk-back" style="color:var(--ink);border-color:var(--line)" type="button" id="al-copy">Copy</button></div></li>
+              <li>Come back here and tap <b>Send test alert</b>. Your phone should buzz.</li>
+            </ol>
+            <div class="ad-row" style="margin-top:12px">
+              <button class="btn" type="button" id="al-test">Send test alert</button>
+              <button class="bk-back" style="color:#a12d20;border-color:#e6b8b2" type="button" id="al-disable">Turn off</button>
+            </div>
+            <p class="bk-note" style="margin:10px 0 0">Keep the topic name private. Anyone who has it can see your booking alerts.</p>
+          </div>
+          <p class="ad-msg" id="al-msg"></p>
+        </div>
+
         <form class="ad-card" id="town-form">
           <h2>Today we're in</h2>
           <p class="bk-note" style="margin:0 0 10px">Shows on the website until midnight. Town only, never a street.</p>
@@ -116,7 +138,7 @@
         var url = location.origin + '/api/calendar.ics?key=' + encodeURIComponent(KEY);
         $('cal-url').value = url; $('cal-sub').href = url.replace(/^https?:/, 'webcal:');
         if (!$('b-date').value) $('b-date').value = d.today;
-        renderWeekly();
+        renderWeekly(); loadAlerts();
         render();
       }).catch(function (e) {
         if (e.status === 401) { try { localStorage.removeItem('jf-admin-key'); } catch (x) {} KEY = ''; $('login').hidden = false; $('app').hidden = true; alertMsg('Wrong passcode, or the passcode isn\'t set up in Netlify yet.'); }
@@ -124,6 +146,26 @@
       });
     }
 
+    function showAlerts(topic) {
+      $('al-off').hidden = !!topic; $('al-setup').hidden = !topic; $('al-topic').value = topic || '';
+    }
+    function loadAlerts() { api('notify').then(function (r) { showAlerts(r.topic); }).catch(function () {}); }
+    $('al-on').addEventListener('click', function () {
+      api('notify', { action: 'enable' }).then(function (r) { showAlerts(r.topic); $('al-msg').textContent = ''; }).catch(function (e) { alertMsg(e.message); });
+    });
+    $('al-test').addEventListener('click', function () {
+      $('al-msg').textContent = 'Sending…';
+      api('notify', { action: 'test' }).then(function () { $('al-msg').textContent = 'Test sent. Check your phone.'; })
+        .catch(function (e) { $('al-msg').textContent = ''; alertMsg(e.message); });
+    });
+    $('al-disable').addEventListener('click', function () {
+      if (!confirmInline(this)) return;
+      api('notify', { action: 'disable' }).then(function () { showAlerts(''); $('al-msg').textContent = 'Alerts turned off.'; });
+    });
+    $('al-copy').addEventListener('click', function () {
+      $('al-topic').select();
+      try { navigator.clipboard.writeText($('al-topic').value); this.textContent = 'Copied'; } catch (e) { document.execCommand('copy'); }
+    });
     var DAYN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     function renderWeekly() {
       var w = (data.weekly || []);
