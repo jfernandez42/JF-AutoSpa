@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#000000">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=20261112c">
-  <link rel="stylesheet" href="book.css?v=20261121">
+  <link rel="stylesheet" href="book.css?v=20261121b">
 </head>
 <body class="bk-body" style="padding-bottom:40px">
   <header class="topbar bk-top">
@@ -71,7 +71,39 @@
         <div class="ad-tabs" role="tablist">
           <button type="button" class="is-on" data-view="upcoming">Upcoming</button>
           <button type="button" data-view="past">Past &amp; earnings</button>
+          <button type="button" class="ad-add" id="aj-toggle">+ Add job</button>
         </div>
+        <form class="ad-card" id="aj-form" hidden style="margin-top:12px">
+          <h2>Add a job</h2>
+          <p class="bk-note" style="margin:0 0 12px">For phone bookings and walk-ups. Future jobs block that time on the booking page.</p>
+          <div class="field-row">
+            <div class="field"><label for="aj-name">Customer name</label><input id="aj-name" required autocomplete="off"></div>
+            <div class="field"><label for="aj-phone">Phone <span class="bk-opt">(optional)</span></label><input id="aj-phone" type="tel" autocomplete="off"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="aj-date">Date</label><input id="aj-date" type="date" required></div>
+            <div class="field"><label for="aj-time">Start time</label><input id="aj-time" type="time" value="09:00" step="900" required></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="aj-pkg">Service</label><select id="aj-pkg"></select></div>
+            <div class="field"><label for="aj-mins">How long</label>
+              <select id="aj-mins"><option value="60">1 hr</option><option value="75">1 hr 15 min</option><option value="90">1½ hrs</option><option value="105">1 hr 45 min</option><option value="120">2 hrs</option><option value="150">2½ hrs</option><option value="180">3 hrs</option><option value="210">3½ hrs</option><option value="240">4 hrs</option><option value="300">5 hrs</option><option value="360">6 hrs</option><option value="480">8 hrs</option></select></div>
+          </div>
+          <div class="field" id="aj-other-wrap" hidden><label for="aj-service">What service?</label><input id="aj-service" placeholder="e.g. Oil change, Ceramic coating" autocomplete="off"></div>
+          <div class="field-row">
+            <div class="field"><label for="aj-vehicle">Vehicle <span class="bk-opt">(optional)</span></label><input id="aj-vehicle" autocomplete="off"></div>
+            <div class="field"><label for="aj-address">Address or town <span class="bk-opt">(optional)</span></label><input id="aj-address" autocomplete="off"></div>
+          </div>
+          <label style="display:flex;gap:10px;align-items:center;font-weight:700;margin:4px 0 10px"><input type="checkbox" id="aj-done" style="width:18px;height:18px;accent-color:var(--ink)"> Already done and paid</label>
+          <div class="field"><label for="aj-amount" id="aj-amount-label">Price <span class="bk-opt">(optional)</span></label><input id="aj-amount" inputmode="decimal" autocomplete="off"></div>
+          <div class="ad-days ad-pay" id="aj-pay" hidden>
+            <label><input type="radio" name="aj-method" value="Cash" checked><span>Cash</span></label><label><input type="radio" name="aj-method" value="Venmo"><span>Venmo</span></label>
+            <label><input type="radio" name="aj-method" value="Zelle"><span>Zelle</span></label><label><input type="radio" name="aj-method" value="Card"><span>Card</span></label>
+          </div>
+          <div class="field"><label for="aj-notes">Notes <span class="bk-opt">(optional)</span></label><input id="aj-notes" autocomplete="off"></div>
+          <div class="ad-row"><button class="btn" type="submit" id="aj-save">Add job</button>
+            <button class="bk-back" style="color:var(--ink);border-color:var(--line)" type="button" id="aj-cancel">Cancel</button></div>
+        </form>
         <div id="list"><p class="ad-empty">Loading…</p></div>
 
         <!-- block time -->
@@ -138,7 +170,7 @@
         var url = location.origin + '/api/calendar.ics?key=' + encodeURIComponent(KEY);
         $('cal-url').value = url; $('cal-sub').href = url.replace(/^https?:/, 'webcal:');
         if (!$('b-date').value) $('b-date').value = d.today;
-        renderWeekly(); loadAlerts();
+        renderWeekly(); loadAlerts(); loadExport();
         render();
       }).catch(function (e) {
         if (e.status === 401) { try { localStorage.removeItem('jf-admin-key'); } catch (x) {} KEY = ''; $('login').hidden = false; $('app').hidden = true; alertMsg('Wrong passcode, or the passcode isn\'t set up in Netlify yet.'); }
@@ -196,6 +228,70 @@
         return '<div><span>' + r[0] + '</span><b>' + money(sum) + '</b><small>' + xs.length + ' job' + (xs.length === 1 ? '' : 's') + '</small></div>';
       }).join('') + '</div>';
     }
+    var exportText = '', exportCount = 0;
+    function crmBox() {
+      return '<div class="ad-crm"><div><b>Send to your CRM</b><span>' +
+        (exportText ? exportCount + ' completed job' + (exportCount === 1 ? '' : 's') + ' ready. Copy, then open your CRM and tap <b>Import from website</b>.' : 'Getting completed jobs…') +
+        '</span></div><button type="button" class="btn" id="crm-copy"' + (exportText ? '' : ' disabled') + '>Copy for CRM</button>' +
+        '<textarea id="crm-text" readonly aria-label="Data for CRM" hidden></textarea></div>';
+    }
+    function loadExport() {
+      api('export').then(function (r) {
+        exportCount = r.jobs.length; exportText = 'JFAUTOSPA-EXPORT:' + JSON.stringify(r.jobs);
+        if (view === 'past') render();
+      }).catch(function () {});
+    }
+    $('list').addEventListener('click', function (ev) {
+      var b = ev.target.closest('#crm-copy'); if (!b) return;
+      var ta = $('crm-text'); ta.value = exportText;
+      var done = function () { b.textContent = 'Copied ✓'; };
+      try { navigator.clipboard.writeText(exportText).then(done, function () { ta.hidden = false; ta.select(); document.execCommand('copy'); done(); }); }
+      catch (e) { ta.hidden = false; ta.select(); try { document.execCommand('copy'); done(); } catch (x) {} }
+    });
+
+    // ----- add job -----
+    var catalog = null;
+    function fillPkgs() {
+      if (!catalog) return;
+      $('aj-pkg').innerHTML = catalog.packages.map(function (p) { return '<option value="' + p.id + '">' + esc(p.name) + ' ($' + p.lo + '–$' + p.hi + ')</option>'; }).join('') +
+        '<option value="other">Other service…</option>';
+      syncPkg();
+    }
+    function syncPkg() {
+      var id = $('aj-pkg').value, p = catalog && catalog.packages.find(function (x) { return x.id === id; });
+      $('aj-other-wrap').hidden = id !== 'other';
+      if (p) { var best = [].slice.call($('aj-mins').options).reduce(function (a, o) { return Math.abs(o.value - p.mins) < Math.abs(a.value - p.mins) ? o : a; }); $('aj-mins').value = best.value; }
+    }
+    fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (c) { catalog = c; fillPkgs(); }).catch(function () {});
+    $('aj-pkg').addEventListener('change', syncPkg);
+    $('aj-toggle').addEventListener('click', function () {
+      var f = $('aj-form'); f.hidden = !f.hidden;
+      if (!f.hidden) { if (!$('aj-date').value && data) $('aj-date').value = data.today; $('aj-name').focus(); }
+    });
+    $('aj-cancel').addEventListener('click', function () { $('aj-form').hidden = true; });
+    $('aj-done').addEventListener('change', function () {
+      $('aj-pay').hidden = !this.checked;
+      $('aj-amount-label').innerHTML = this.checked ? 'Amount paid' : 'Price <span class="bk-opt">(optional)</span>';
+    });
+    $('aj-form').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var amt = String($('aj-amount').value).replace(/[^0-9.]/g, '');
+      var btn = $('aj-save'); btn.disabled = true; btn.textContent = 'Adding…';
+      api('addjob', {
+        name: $('aj-name').value, phone: $('aj-phone').value, date: $('aj-date').value, time: $('aj-time').value,
+        pkg: $('aj-pkg').value, service: $('aj-service').value, mins: +$('aj-mins').value,
+        vehicle: $('aj-vehicle').value, address: $('aj-address').value, notes: $('aj-notes').value,
+        amount: amt === '' ? '' : +amt, done: $('aj-done').checked,
+        method: (document.querySelector('input[name=aj-method]:checked') || {}).value
+      }).then(function (r) {
+        ['aj-name', 'aj-phone', 'aj-vehicle', 'aj-address', 'aj-notes', 'aj-amount', 'aj-service'].forEach(function (i) { $(i).value = ''; });
+        $('aj-done').checked = false; $('aj-pay').hidden = true; $('aj-form').hidden = true;
+        view = r.entry.date < data.today ? 'past' : 'upcoming';
+        document.querySelectorAll('.ad-tabs [data-view]').forEach(function (x) { x.classList.toggle('is-on', x.dataset.view === view); });
+        return load();
+      }).catch(function (e) { alertMsg(e.message); }).then(function () { btn.disabled = false; btn.textContent = 'Add job'; });
+    });
+
     function completeForm(e) {
       return '<form class="ad-done-form" data-complete="' + e.id + '">' +
         '<div class="ad-row"><div class="field"><label>Amount paid</label><input name="amount" inputmode="decimal" placeholder="Estimate $' + e.lo + '–$' + e.hi + '" required></div></div>' +
@@ -208,7 +304,7 @@
       var today = data.today;
       var list = data.entries.filter(function (e) { return view === 'upcoming' ? e.date >= today : e.date < today; });
       if (view === 'past') list.reverse();
-      var top = view === 'past' ? earnings() : '';
+      var top = view === 'past' ? earnings() + crmBox() : '';
       if (!list.length) { $('list').innerHTML = top + '<p class="ad-empty" style="margin-top:16px">' + (view === 'upcoming' ? 'No upcoming bookings yet.' : 'No past jobs yet.') + '</p>'; return; }
       var h = top, cur = '';
       list.forEach(function (e) {
@@ -224,23 +320,23 @@
             (cancelled ? '' : '<div class="ad-acts"><button type="button" class="ad-cancel" data-cancel="' + e.id + '" data-what="this block">Remove</button></div>') + '</div>';
           return;
         }
-        var addr = e.address + ', ' + e.zip, tel = esc(e.phone.replace(/[^\d+]/g, ''));
+        var addr = [e.address, e.zip].filter(Boolean).join(', '), tel = esc((e.phone || '').replace(/[^\d+]/g, ''));
         var overdue = !done && !cancelled && e.date < today;
         h += '<div class="ad-job' + (cancelled ? ' is-cancelled' : '') + (done ? ' is-done' : '') + '"><div class="ad-job-top"><b>' + esc(e.name) + (cancelled ? ' (cancelled)' : '') + '</b>' +
           '<span class="ad-time">' + t12(e.start) + '–' + t12(e.end) + '</span></div>' +
           (done ? '<p class="ad-paid">✓ Completed · ' + money(e.paid || 0) + ' · ' + esc(e.payMethod || '') + (e.finalNote ? '<br><span>' + esc(e.finalNote) + '</span>' : '') + '</p>' : '') +
           (overdue ? '<p class="ad-overdue">Not marked complete yet</p>' : '') +
           '<p><strong>' + esc(e.pkgName) + '</strong>' + (e.addonNames && e.addonNames.length ? ' + ' + esc(e.addonNames.join(', ')) : '') +
-          ' · <strong>$' + e.lo + '–$' + e.hi + (e.plus ? '+' : '') + '</strong></p>' +
-          '<p>' + esc(e.vehicle) + ' · ' + esc(e.parking || '') + ' · Inside: ' + esc(e.condition || '-') + '</p>' +
-          '<p>' + esc(addr) + '</p>' +
+          ' · <strong>' + (e.lo === e.hi ? money(e.lo) : '$' + e.lo + '–$' + e.hi) + (e.plus ? '+' : '') + '</strong>' + (e.source === 'manual' ? ' <span class="ad-tag">Added by you</span>' : '') + '</p>' +
+          (e.vehicle || e.parking || e.condition ? '<p>' + [esc(e.vehicle), esc(e.parking), e.condition ? 'Inside: ' + esc(e.condition) : ''].filter(Boolean).join(' · ') + '</p>' : '') +
+          (e.address || e.zip ? '<p>' + esc([e.address, e.zip].filter(Boolean).join(', ')) + '</p>' : '') +
           (e.notes ? '<p>Notes: ' + esc(e.notes) + '</p>' : '') +
-          '<p>' + esc(e.phone) + (e.email ? ' · ' + esc(e.email) : '') + '</p>' +
+          (e.phone || e.email ? '<p>' + esc(e.phone) + (e.email ? (e.phone ? ' · ' : '') + esc(e.email) : '') + '</p>' : '') +
           (cancelled ? '' : '<div class="ad-acts">' +
             (done ? '' : '<button type="button" class="ad-complete" data-open="' + e.id + '">Complete</button>') +
-            '<a href="tel:' + tel + '">Call</a><a href="sms:' + tel + '">Text</a>' +
+            (tel ? '<a href="tel:' + tel + '">Call</a><a href="sms:' + tel + '">Text</a>' : '') +
             (done ? '<button type="button" class="ad-cancel" data-reopen="' + e.id + '">Undo complete</button>'
-                  : '<a href="https://maps.apple.com/?daddr=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener">Directions</a>' +
+                  : (e.address ? '<a href="https://maps.apple.com/?daddr=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener">Directions</a>' : '') +
                     '<button type="button" class="ad-cancel" data-cancel="' + e.id + '" data-what="' + esc(e.name) + '\'s booking">Cancel</button>') +
             '</div>' + (done ? '' : '<div class="ad-form-slot" data-slot="' + e.id + '"></div>')) +
           '</div>';
@@ -277,7 +373,7 @@
     document.querySelector('.ad-tabs').addEventListener('click', function (ev) {
       var b = ev.target.closest('[data-view]'); if (!b) return;
       view = b.dataset.view;
-      document.querySelectorAll('.ad-tabs button').forEach(function (x) { x.classList.toggle('is-on', x === b); });
+      document.querySelectorAll('.ad-tabs [data-view]').forEach(function (x) { x.classList.toggle('is-on', x === b); });
       render();
     });
     $('list').addEventListener('click', function (ev) {

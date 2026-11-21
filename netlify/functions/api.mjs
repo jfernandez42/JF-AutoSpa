@@ -157,6 +157,39 @@ export default async (req) => {
 
       const body = method === 'POST' ? await req.json().catch(() => ({})) : {};
 
+      if (action === 'addjob' && method === 'POST') {
+        const start = fromHHMM(body.time);
+        const name = clean(body.name, 80);
+        if (!name) return json({ error: "Enter the customer's name." }, 400);
+        if (!isDate(body.date) || start === null) return json({ error: 'Pick a date and start time.' }, 400);
+        const pkg = PACKAGES.find(p => p.id === body.pkg);
+        const mins = Math.min(720, Math.max(15, parseInt(body.mins, 10) || (pkg ? pkg.mins : 120)));
+        const amount = body.amount === '' || body.amount == null ? null : Math.round(Number(body.amount) * 100) / 100;
+        if (amount !== null && (!isFinite(amount) || amount < 0 || amount > 100000)) return json({ error: 'Check the amount.' }, 400);
+        if (body.done && amount === null) return json({ error: 'Enter the amount paid.' }, 400);
+        const METHODS = ['Cash', 'Venmo', 'Zelle', 'Card', 'Other'];
+        const entry = {
+          id: newId(), type: 'booking', source: 'manual', status: body.done ? 'completed' : 'booked', createdAt: new Date().toISOString(),
+          date: body.date, start, end: Math.min(1440, start + mins),
+          pkg: pkg ? pkg.id : 'other', pkgName: pkg ? pkg.name : (clean(body.service, 80) || 'Other service'), addons: [], addonNames: [],
+          lo: amount !== null ? amount : (pkg ? pkg.lo : 0), hi: amount !== null ? amount : (pkg ? pkg.hi : 0), plus: false,
+          name, phone: clean(body.phone, 30), email: clean(body.email, 120), address: clean(body.address, 160), zip: clean(body.zip, 10),
+          vehicle: clean(body.vehicle, 100), parking: '', condition: '', notes: cleanMulti(body.notes, 1000)
+        };
+        if (body.done) Object.assign(entry, { paid: amount, payMethod: METHODS.includes(body.method) ? body.method : 'Other', finalNote: '', completedAt: new Date().toISOString() });
+        const res = await mutate(list => ({ list: [...list, entry], verify: l => l.some(e => e.id === entry.id) }));
+        return res.error ? json({ error: res.error }, res.status) : json({ ok: true, entry });
+      }
+
+      if (action === 'export' && method === 'GET') {
+        const done = (await readAll()).filter(e => e.type === 'booking' && e.status === 'completed')
+          .map(e => ({ id: e.id, date: e.date, time: `${String(Math.floor(e.start / 60)).padStart(2, '0')}:${String(e.start % 60).padStart(2, '0')}`,
+            pkgName: e.pkgName, addonNames: e.addonNames || [], paid: e.paid, payMethod: e.payMethod, finalNote: e.finalNote || '',
+            name: e.name, phone: e.phone, email: e.email || '', address: e.address || '', zip: e.zip || '', vehicle: e.vehicle || '',
+            notes: e.notes || '', source: e.source || 'website' }));
+        return json({ jobs: done });
+      }
+
       if (action === 'complete' && method === 'POST') {
         const amount = Math.round(Number(body.amount) * 100) / 100;
         const METHODS = ['Cash', 'Venmo', 'Zelle', 'Card', 'Other'];
