@@ -218,6 +218,51 @@ export default async (req) => {
         return json({ jobs: done });
       }
 
+      if (action === 'update' && method === 'POST') {
+        let problem = null;
+        const res = await mutate(list => {
+          const i = list.findIndex(e => e.id === body.id);
+          if (i < 0) return { error: 'Not found.', status: 404 };
+          const e = { ...list[i] };
+          if (e.type === 'weekly') {
+            const days = [...new Set((Array.isArray(body.days) ? body.days : []).map(Number))].filter(d => d >= 0 && d <= 6).sort();
+            const start = body.allDay ? 0 : fromHHMM(body.start), end = body.allDay ? 1440 : fromHHMM(body.end);
+            if (!days.length) return { error: 'Pick at least one day.', status: 400 };
+            if (start === null || end === null || end <= start) return { error: 'Check the times.', status: 400 };
+            if (!isDate(body.since)) return { error: 'Check the start date.', status: 400 };
+            Object.assign(e, { days, every: Math.min(4, Math.max(1, parseInt(body.every, 10) || 1)), start, end, since: body.since,
+              label: clean(body.label, 100) || 'Blocked', updatedAt: new Date().toISOString() });
+          } else if (e.type === 'booking') {
+            const start = fromHHMM(body.time);
+            if (!isDate(body.date) || start === null) return { error: 'Pick a date and start time.', status: 400 };
+            const mins = Math.min(720, Math.max(15, parseInt(body.mins, 10) || (e.end - e.start)));
+            const name = clean(body.name, 80);
+            if (!name) return { error: "Enter the customer's name.", status: 400 };
+            Object.assign(e, { date: body.date, start, end: Math.min(1440, start + mins), name,
+              phone: clean(body.phone, 30), email: clean(body.email, 120), address: clean(body.address, 160), zip: clean(body.zip, 10),
+              notes: cleanMulti(body.notes, 1000), updatedAt: new Date().toISOString() });
+            if (!e.cars) e.vehicle = clean(body.vehicle, 100);
+            if (body.price !== '' && body.price != null) {
+              const pr = Math.round(Number(body.price) * 100) / 100;
+              if (!isFinite(pr) || pr < 0) return { error: 'Check the price.', status: 400 };
+              e.lo = pr; e.hi = pr; e.plus = false;
+            }
+            if (e.status === 'completed' && body.paid !== '' && body.paid != null) {
+              const pd = Math.round(Number(body.paid) * 100) / 100;
+              if (!isFinite(pd) || pd < 0) return { error: 'Check the amount paid.', status: 400 };
+              e.paid = pd;
+              if (['Cash', 'Venmo', 'Zelle', 'Card', 'Other'].includes(body.method)) e.payMethod = body.method;
+            }
+            if (e.status === 'booked' && e.end > (RULES.hours[new Date(e.date + 'T12:00:00Z').getUTCDay()] || [0, 1440])[1]) problem = 'Saved. Heads up: this runs past closing time.';
+          } else {
+            return { error: "That can't be edited. Remove it and add it again.", status: 400 };
+          }
+          const next = list.slice(); next[i] = e;
+          return { list: next, verify: l => l.find(x => x.id === body.id)?.updatedAt === e.updatedAt };
+        });
+        return res.error ? json({ error: res.error }, res.status) : json({ ok: true, note: problem });
+      }
+
       if (action === 'complete' && method === 'POST') {
         const amount = Math.round(Number(body.amount) * 100) / 100;
         const METHODS = ['Cash', 'Venmo', 'Zelle', 'Card', 'Other'];

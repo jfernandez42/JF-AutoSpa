@@ -235,3 +235,5 @@
 .bk-addcar-btn:hover { background: var(--ink); color: var(--white); }
 .bk-addcar span { color: var(--muted); font-size: .9063rem; flex: 1; min-width: 200px; }
 .ad-job p.ad-car { color: var(--ink); }
+.ad-check { display: flex; gap: 10px; align-items: center; font-weight: 700; margin: 0 0 10px; }
+.ad-check input { width: 18px; height: 18px; accent-color: var(--ink); }

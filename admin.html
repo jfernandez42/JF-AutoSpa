@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#000000">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=20261112c">
-  <link rel="stylesheet" href="book.css?v=20261121c">
+  <link rel="stylesheet" href="book.css?v=20261122">
 </head>
 <body class="bk-body" style="padding-bottom:40px">
   <header class="topbar bk-top">
@@ -128,11 +128,11 @@
           </div>
           <button class="btn" type="submit">Block it</button>
           <p class="ad-msg" id="block-msg"></p>
-          <div id="weekly-wrap" hidden>
-            <h3 class="ad-day" style="margin-top:18px">Repeating blocks</h3>
-            <div id="weekly"></div>
-          </div>
         </form>
+        <div class="ad-card" id="weekly-wrap" hidden>
+          <h2>Repeating blocks</h2>
+          <div id="weekly"></div>
+        </div>
 
         <!-- calendar feed -->
         <div class="ad-card">
@@ -206,10 +206,46 @@
         return '<div class="ad-job is-block"><div class="ad-job-top"><b>' + esc(e.label) + '</b><span class="ad-time">' +
           (e.start === 0 && e.end >= 1440 ? 'All day' : t12(e.start) + '–' + t12(e.end)) + '</span></div>' +
           '<p>' + ['', 'Every', 'Every other', 'Every 3rd', 'Every 4th'][e.every || 1] + ' ' + e.days.map(function (d) { return DAYN[d]; }).join(', ') + ' · starting ' + dlabel(e.since) + '</p>' +
-          '<div class="ad-acts"><button type="button" class="ad-cancel" data-cancel="' + e.id + '">Remove</button></div></div>';
+          '<div class="ad-acts"><button type="button" data-wedit="' + e.id + '">Edit</button><button type="button" class="ad-cancel" data-cancel="' + e.id + '">Remove</button></div>' +
+          '<div class="ad-form-slot" data-wslot="' + e.id + '"></div></div>';
       }).join('');
     }
+    var LENS = [30, 45, 60, 75, 90, 105, 120, 150, 180, 210, 240, 270, 300, 360, 420, 480];
+    function lenOpts(cur) {
+      var l = LENS.indexOf(cur) < 0 ? LENS.concat([cur]).sort(function (a, b) { return a - b; }) : LENS;
+      return l.map(function (m) { var h = Math.floor(m / 60), r = m % 60; return '<option value="' + m + '"' + (m === cur ? ' selected' : '') + '>' + (h ? h + ' hr' : '') + (h && r ? ' ' : '') + (r ? r + ' min' : '') + '</option>'; }).join('');
+    }
+    function hhmm(min) { return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0'); }
+    function weeklyForm(e) {
+      var all = e.start === 0 && e.end >= 1440;
+      return '<form class="ad-done-form" data-wsave="' + e.id + '">' +
+        '<div class="field"><label>Label</label><input name="label" value="' + esc(e.label) + '"></div>' +
+        '<div class="field-row"><div class="field"><label>How often</label><select name="every">' + [1, 2, 3, 4].map(function (n) {
+          return '<option value="' + n + '"' + ((e.every || 1) === n ? ' selected' : '') + '>' + ['Every week', 'Every other week', 'Every 3 weeks', 'Every 4 weeks'][n - 1] + '</option>'; }).join('') + '</select></div>' +
+        '<div class="field"><label>Starting</label><input type="date" name="since" value="' + e.since + '"></div></div>' +
+        '<div class="ad-days">' + [1, 2, 3, 4, 5, 6].map(function (d) {
+          return '<label><input type="checkbox" name="day" value="' + d + '"' + (e.days.indexOf(d) > -1 ? ' checked' : '') + '><span>' + DAYN[d] + '</span></label>'; }).join('') + '</div>' +
+        '<label class="ad-check"><input type="checkbox" name="allDay"' + (all ? ' checked' : '') + '> All day</label>' +
+        '<div class="field-row" data-times' + (all ? ' hidden' : '') + '><div class="field"><label>From</label><input type="time" name="start" step="900" value="' + (all ? '08:00' : hhmm(e.start)) + '"></div>' +
+        '<div class="field"><label>To</label><input type="time" name="end" step="900" value="' + (all ? '12:00' : hhmm(Math.min(e.end, 1439))) + '"></div></div>' +
+        '<div class="ad-acts"><button type="submit" class="ad-save">Save changes</button><button type="button" data-close="1">Close</button></div></form>';
+    }
+    $('weekly').addEventListener('change', function (ev) {
+      if (ev.target.name === 'allDay') ev.target.closest('form').querySelector('[data-times]').hidden = ev.target.checked;
+    });
+    $('weekly').addEventListener('submit', function (ev) {
+      var f = ev.target.closest('[data-wsave]'); if (!f) return; ev.preventDefault();
+      var days = [].map.call(f.querySelectorAll('input[name=day]:checked'), function (i) { return +i.value; });
+      var btn = f.querySelector('.ad-save'); btn.disabled = true; btn.textContent = 'Saving…';
+      api('update', { id: f.dataset.wsave, label: f.elements['label'].value, every: +f.elements['every'].value, since: f.elements['since'].value, days: days,
+        allDay: f.elements['allDay'].checked, start: f.elements['start'].value, end: f.elements['end'].value })
+        .then(load).catch(function (e) { alertMsg(e.message); btn.disabled = false; btn.textContent = 'Save changes'; });
+    });
     $('weekly').addEventListener('click', function (ev) {
+      var w = ev.target.closest('[data-wedit]');
+      if (w) { var sl = document.querySelector('[data-wslot="' + w.dataset.wedit + '"]'), we = data.weekly.find(function (x) { return x.id === w.dataset.wedit; });
+        if (sl && we) sl.innerHTML = sl.innerHTML ? '' : weeklyForm(we); return; }
+      var cl = ev.target.closest('[data-close]'); if (cl) { cl.closest('.ad-form-slot').innerHTML = ''; return; }
       var b = ev.target.closest('[data-cancel]'); if (!b) return;
       if (!confirmInline(b)) return;
       b.disabled = true; b.textContent = 'Removing…';
@@ -335,11 +371,12 @@
           (e.phone || e.email ? '<p>' + esc(e.phone) + (e.email ? (e.phone ? ' · ' : '') + esc(e.email) : '') + '</p>' : '') +
           (cancelled ? '' : '<div class="ad-acts">' +
             (done ? '' : '<button type="button" class="ad-complete" data-open="' + e.id + '">Complete</button>') +
+            '<button type="button" data-edit="' + e.id + '">Edit</button>' +
             (tel ? '<a href="tel:' + tel + '">Call</a><a href="sms:' + tel + '">Text</a>' : '') +
             (done ? '<button type="button" class="ad-cancel" data-reopen="' + e.id + '">Undo complete</button>'
                   : (e.address ? '<a href="https://maps.apple.com/?daddr=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener">Directions</a>' : '') +
                     '<button type="button" class="ad-cancel" data-cancel="' + e.id + '" data-what="' + esc(e.name) + '\'s booking">Cancel</button>') +
-            '</div>' + (done ? '' : '<div class="ad-form-slot" data-slot="' + e.id + '"></div>')) +
+            '</div>' + '<div class="ad-form-slot" data-slot="' + e.id + '"></div>') +
           '</div>';
       });
       $('list').innerHTML = h;
@@ -348,11 +385,42 @@
       var o = ev.target.closest('[data-open]');
       if (o) { var slot = document.querySelector('[data-slot="' + o.dataset.open + '"]'); var e = data.entries.find(function (x) { return x.id === o.dataset.open; });
         if (slot && e) { slot.innerHTML = slot.innerHTML ? '' : completeForm(e); var inp = slot.querySelector('input[name=amount]'); if (inp) inp.focus(); } return; }
+      var ed = ev.target.closest('[data-edit]');
+      if (ed) { var sl = document.querySelector('[data-slot="' + ed.dataset.edit + '"]'), je = data.entries.find(function (x) { return x.id === ed.dataset.edit; });
+        if (sl && je) { var open = sl.querySelector('[data-esave]'); sl.innerHTML = open ? '' : editForm(je); } return; }
       var c = ev.target.closest('[data-close]'); if (c) { c.closest('.ad-form-slot').innerHTML = ''; return; }
       var r = ev.target.closest('[data-reopen]');
       if (r) { if (!confirmInline(r)) return; r.disabled = true; api('reopen', { id: r.dataset.reopen }).then(load).catch(function (e) { alertMsg(e.message); r.disabled = false; }); }
     });
+    function editForm(e) {
+      var done = e.status === 'completed', f = function (n, label, v, extra) { return '<div class="field"><label>' + label + '</label><input name="' + n + '" value="' + esc(v || '') + '"' + (extra || '') + '></div>'; };
+      return '<form class="ad-done-form" data-esave="' + e.id + '">' +
+        '<div class="field-row"><div class="field"><label>Date</label><input type="date" name="date" value="' + e.date + '" required></div>' +
+        '<div class="field"><label>Start time</label><input type="time" name="time" step="900" value="' + hhmm(e.start) + '" required></div></div>' +
+        '<div class="field-row"><div class="field"><label>How long</label><select name="mins">' + lenOpts(e.end - e.start) + '</select></div>' +
+        f('price', 'Price' + (e.lo !== e.hi ? ' <span class="bk-opt">(now $' + e.lo + '–$' + e.hi + ')</span>' : ''), e.lo === e.hi ? String(e.lo) : '', ' inputmode="decimal" placeholder="Leave blank to keep estimate"') + '</div>' +
+        (done ? '<div class="field-row">' + f('paid', 'Amount paid', String(e.paid != null ? e.paid : ''), ' inputmode="decimal"') +
+          '<div class="field"><label>Paid with</label><select name="method">' + ['Cash', 'Venmo', 'Zelle', 'Card', 'Other'].map(function (m) { return '<option' + (e.payMethod === m ? ' selected' : '') + '>' + m + '</option>'; }).join('') + '</select></div></div>' : '') +
+        '<div class="field-row">' + f('name', 'Customer name', e.name) + f('phone', 'Phone', e.phone, ' type="tel"') + '</div>' +
+        '<div class="field-row">' + f('address', 'Address', e.address) + f('zip', 'ZIP', e.zip, ' inputmode="numeric"') + '</div>' +
+        (e.cars ? '' : f('vehicle', 'Vehicle', e.vehicle)) + f('email', 'Email', e.email, ' type="email"') +
+        '<div class="field"><label>Notes</label><textarea name="notes" rows="2">' + esc(e.notes || '') + '</textarea></div>' +
+        '<div class="ad-acts"><button type="submit" class="ad-save">Save changes</button><button type="button" data-close="1">Close</button></div></form>';
+    }
     $('list').addEventListener('submit', function (ev) {
+      var g = ev.target.closest('[data-esave]');
+      if (g) {
+        ev.preventDefault();
+        var num = function (v) { v = String(v || '').replace(/[^0-9.]/g, ''); return v === '' ? '' : +v; };
+        var btn = g.querySelector('.ad-save'); btn.disabled = true; btn.textContent = 'Saving…';
+        api('update', { id: g.dataset.esave, date: g.elements['date'].value, time: g.elements['time'].value, mins: +g.elements['mins'].value, price: num(g.elements['price'].value),
+          paid: g.elements['paid'] ? num(g.elements['paid'].value) : '', method: g.elements['method'] ? g.elements['method'].value : '',
+          name: g.elements['name'].value, phone: g.elements['phone'].value, address: g.elements['address'].value, zip: g.elements['zip'].value,
+          vehicle: g.elements['vehicle'] ? g.elements['vehicle'].value : '', email: g.elements['email'].value, notes: g.elements['notes'].value })
+          .then(function (r) { return load().then(function () { if (r.note) alertMsg(r.note); }); })
+          .catch(function (e) { alertMsg(e.message); btn.disabled = false; btn.textContent = 'Save changes'; });
+        return;
+      }
       var f = ev.target.closest('[data-complete]'); if (!f) return;
       ev.preventDefault();
       var amt = parseFloat(String(f.amount.value).replace(/[^0-9.]/g, ''));
