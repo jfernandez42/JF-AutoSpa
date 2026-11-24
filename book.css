@@ -237,3 +237,11 @@
 .ad-job p.ad-car { color: var(--ink); }
 .ad-check { display: flex; gap: 10px; align-items: center; font-weight: 700; margin: 0 0 10px; }
 .ad-check input { width: 18px; height: 18px; accent-color: var(--ink); }
+.ad-acts .ad-msgbtn { background: #0d0d0e; border-color: #0d0d0e; color: #fff; }
+.ad-texts { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); display: flex; flex-direction: column; gap: 8px; }
+.ad-texts-h { margin: 0 !important; font-size: .8125rem !important; }
+.ad-text { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--ink); background: var(--white); }
+.ad-text:hover { border-color: var(--ink); }
+.ad-text b { font-size: .875rem; }
+.ad-text span { font-size: .8125rem; color: var(--muted); line-height: 1.4; }
+.ad-text.is-top { border-color: var(--amber); background: #fffaf0; }

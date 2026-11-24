@@ -179,7 +179,8 @@ export default async (req) => {
         const list = all.filter(e => e.type !== 'weekly' && e.date >= from).sort((a, b) => a.date.localeCompare(b.date) || a.start - b.start);
         const weekly = all.filter(e => e.type === 'weekly' && e.status !== 'cancelled');
         const t = await store().get('today', { type: 'json' });
-        return json({ today: nyNow().date, entries: list, weekly, town: t && t.date === nyNow().date ? t.town : '' });
+        const settings = (await store().get('settings', { type: 'json' })) || {};
+        return json({ today: nyNow().date, entries: list, weekly, settings, town: t && t.date === nyNow().date ? t.town : '' });
       }
 
       const body = method === 'POST' ? await req.json().catch(() => ({})) : {};
@@ -216,6 +217,15 @@ export default async (req) => {
             name: e.name, phone: e.phone, email: e.email || '', address: e.address || '', zip: e.zip || '', vehicle: e.vehicle || '',
             notes: e.notes || '', source: e.source || 'website' }));
         return json({ jobs: done });
+      }
+
+      if (action === 'settings' && method === 'POST') {
+        const cur = (await store().get('settings', { type: 'json' })) || {};
+        let link = clean(body.reviewLink, 300);
+        if (link && !/^https?:\/\//i.test(link)) link = 'https://' + link;
+        const next = { ...cur, reviewLink: link };
+        await store().setJSON('settings', next);
+        return json({ ok: true, settings: next });
       }
 
       if (action === 'update' && method === 'POST') {

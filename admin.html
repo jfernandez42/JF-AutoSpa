@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#000000">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=20261112c">
-  <link rel="stylesheet" href="book.css?v=20261122">
+  <link rel="stylesheet" href="book.css?v=20261124">
 </head>
 <body class="bk-body" style="padding-bottom:40px">
   <header class="topbar bk-top">
@@ -55,6 +55,16 @@
           </div>
           <p class="ad-msg" id="al-msg"></p>
         </div>
+
+        <form class="ad-card" id="msg-settings">
+          <h2>Text messages</h2>
+          <p class="bk-note" style="margin:0 0 10px">Tap <b>Message</b> on any job to open a ready-written text in your Messages app. Paste your Google review link here so the thank-you text includes it.</p>
+          <div class="ad-row">
+            <div class="field"><label for="review-link">Google review link</label><input id="review-link" placeholder="https://g.page/r/…/review" autocomplete="off" inputmode="url"></div>
+            <button class="btn" type="submit">Save</button>
+          </div>
+          <p class="ad-msg" id="rl-msg"></p>
+        </form>
 
         <form class="ad-card" id="town-form">
           <h2>Today we're in</h2>
@@ -171,6 +181,7 @@
         $('cal-url').value = url; $('cal-sub').href = url.replace(/^https?:/, 'webcal:');
         if (!$('b-date').value) $('b-date').value = d.today;
         renderWeekly(); loadAlerts(); loadExport();
+        if (document.activeElement !== $('review-link')) $('review-link').value = (d.settings && d.settings.reviewLink) || '';
         render();
       }).catch(function (e) {
         if (e.status === 401) { try { localStorage.removeItem('jf-admin-key'); } catch (x) {} KEY = ''; $('login').hidden = false; $('app').hidden = true; alertMsg('Wrong passcode, or the passcode isn\'t set up in Netlify yet.'); }
@@ -371,6 +382,7 @@
           (e.phone || e.email ? '<p>' + esc(e.phone) + (e.email ? (e.phone ? ' · ' : '') + esc(e.email) : '') + '</p>' : '') +
           (cancelled ? '' : '<div class="ad-acts">' +
             (done ? '' : '<button type="button" class="ad-complete" data-open="' + e.id + '">Complete</button>') +
+            (tel ? '<button type="button" class="ad-msgbtn" data-msg="' + e.id + '">Message</button>' : '') +
             '<button type="button" data-edit="' + e.id + '">Edit</button>' +
             (tel ? '<a href="tel:' + tel + '">Call</a><a href="sms:' + tel + '">Text</a>' : '') +
             (done ? '<button type="button" class="ad-cancel" data-reopen="' + e.id + '">Undo complete</button>'
@@ -385,6 +397,9 @@
       var o = ev.target.closest('[data-open]');
       if (o) { var slot = document.querySelector('[data-slot="' + o.dataset.open + '"]'); var e = data.entries.find(function (x) { return x.id === o.dataset.open; });
         if (slot && e) { slot.innerHTML = slot.innerHTML ? '' : completeForm(e); var inp = slot.querySelector('input[name=amount]'); if (inp) inp.focus(); } return; }
+      var mb = ev.target.closest('[data-msg]');
+      if (mb) { var ms = document.querySelector('[data-slot="' + mb.dataset.msg + '"]'), me = data.entries.find(function (x) { return x.id === mb.dataset.msg; });
+        if (ms && me) { var isOpen = ms.querySelector('.ad-texts'); ms.innerHTML = isOpen ? '' : textsPanel(me); } return; }
       var ed = ev.target.closest('[data-edit]');
       if (ed) { var sl = document.querySelector('[data-slot="' + ed.dataset.edit + '"]'), je = data.entries.find(function (x) { return x.id === ed.dataset.edit; });
         if (sl && je) { var open = sl.querySelector('[data-esave]'); sl.innerHTML = open ? '' : editForm(je); } return; }
@@ -392,6 +407,52 @@
       var r = ev.target.closest('[data-reopen]');
       if (r) { if (!confirmInline(r)) return; r.disabled = true; api('reopen', { id: r.dataset.reopen }).then(load).catch(function (e) { alertMsg(e.message); r.disabled = false; }); }
     });
+    // ---------- ready-written texts ----------
+    function smsHref(phone, body) {
+      var num = String(phone || '').replace(/[^\d+]/g, '');
+      if (num.length === 10) num = '+1' + num; else if (num.length === 11 && num[0] === '1') num = '+' + num;
+      return 'sms:' + num + '?&body=' + encodeURIComponent(body);   // works on iPhone and Android
+    }
+    function firstName(n) { return String(n || '').trim().split(/\s+/)[0] || 'there'; }
+    function dayWord(date) {
+      var p = date.split('-').map(Number), d = new Date(p[0], p[1] - 1, p[2]);
+      var t = data.today.split('-').map(Number), today = new Date(t[0], t[1] - 1, t[2]);
+      var diff = Math.round((d - today) / 864e5);
+      if (diff === 0) return 'today';
+      if (diff === 1) return 'tomorrow';
+      return 'on ' + d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    }
+    function service(e) { return e.cars ? e.cars.length + ' cars' : e.pkgName; }
+    function texts(e) {
+      var fn = firstName(e.name), when = dayWord(e.date), at = t12(e.start);
+      var review = (data.settings && data.settings.reviewLink) || '';
+      var where = e.address ? ' at ' + e.address : '';
+      var list = [
+        ['Confirm', 'Hi ' + fn + ', this is Joe from JF AutoSpa. You\'re all set for ' + when + ' at ' + at + ' (' + service(e) + ')' + where + '. We bring our own water and power. Just reply here if anything changes!'],
+        ['Reminder', 'Hi ' + fn + ', quick reminder that JF AutoSpa is coming ' + when + ' at ' + at + '. If you can, clear out personal items so we can get every spot. See you then!'],
+        ['On my way', 'Hi ' + fn + ', Joe from JF AutoSpa here. I\'m on my way and should be there in about 20 minutes.'],
+        ['Running late', 'Hi ' + fn + ', Joe from JF AutoSpa. Sorry, I\'m running about 15 minutes behind. I\'ll be there as soon as I can!'],
+        ['Thank you + review', 'Thanks for choosing JF AutoSpa, ' + fn + '! Hope you love how it came out. ' +
+          (review ? 'If you have a minute, a quick Google review would mean a lot: ' + review : 'If you have a minute, a quick Google review would mean a lot (just search JF AutoSpa on Google).') + ' See you next time!'],
+        ['Book next detail', 'Hi ' + fn + ', it\'s Joe from JF AutoSpa. It\'s been a few weeks since your last detail. Want me to get you back on the schedule? Book here: jfautospa.com/book.html or just reply with a day that works.']
+      ];
+      // most useful first: before the job vs after it
+      return e.status === 'completed' ? list.slice(4).concat(list.slice(0, 4)) : list;
+    }
+    function textsPanel(e) {
+      return '<div class="ad-texts"><p class="ad-texts-h">Tap one to open it in Messages. You can change the words before sending.</p>' +
+        texts(e).map(function (t, i) {
+          return '<a class="ad-text' + (i < 2 ? ' is-top' : '') + '" href="' + smsHref(e.phone, t[1]) + '"><b>' + t[0] + '</b><span>' + esc(t[1]) + '</span></a>';
+        }).join('') + '<div class="ad-acts"><button type="button" data-close="1">Close</button></div></div>';
+    }
+    $('msg-settings').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      api('settings', { reviewLink: $('review-link').value }).then(function (r) {
+        data.settings = r.settings; $('review-link').value = r.settings.reviewLink || '';
+        $('rl-msg').textContent = r.settings.reviewLink ? 'Saved. Thank-you texts will include it.' : 'Cleared.';
+      }).catch(function (e) { alertMsg(e.message); });
+    });
+
     function editForm(e) {
       var done = e.status === 'completed', f = function (n, label, v, extra) { return '<div class="field"><label>' + label + '</label><input name="' + n + '" value="' + esc(v || '') + '"' + (extra || '') + '></div>'; };
       return '<form class="ad-done-form" data-esave="' + e.id + '">' +
