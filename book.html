@@ -220,11 +220,11 @@
     function renderAddons() {
       var p = S.cat.packages.find(function (x) { return x.id === S.pkg; });
       if (!p) { $('addon-wrap').hidden = true; return; }
-      var fits = function (a) { return p.side === 'both' || a.side === p.side; };
+      var fits = function (a) { return (p.includes || []).indexOf(a.id) < 0 && (p.side === 'both' || a.side === p.side); };
       S.addons = S.addons.filter(function (id) { return fits(S.cat.addons.find(function (a) { return a.id === id; })); });
       var groups = [['ext', 'Exterior'], ['int', 'Interior']].filter(function (g) { return p.side === 'both' || p.side === g[0]; });
       $('addons').innerHTML = groups.map(function (g) {
-        var list = S.cat.addons.filter(function (a) { return a.side === g[0]; });
+        var list = S.cat.addons.filter(function (a) { return a.side === g[0] && fits(a); });
         return '<fieldset class="bk-addons"><legend>' + g[1] + '</legend>' + list.map(function (a) {
           var pr = (a.lo === a.hi ? money(a.lo) : money(a.lo) + '–' + money(a.hi)) + (a.plus ? '+' : '');
           return '<label class="bk-addon"><input type="checkbox" value="' + a.id + '"' + (S.addons.indexOf(a.id) > -1 ? ' checked' : '') + '>' +

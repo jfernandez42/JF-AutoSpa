@@ -21,8 +21,8 @@ export const PACKAGES = [
     blurb: 'Vacuum, wipe-down, streak-free interior windows.' },
   { id: 'fresh', name: 'Fresh Start', lo: 100, hi: 150, mins: 120, side: 'both',
     blurb: 'Inside and out: hand wash, tire shine, vacuum, wipe-down, windows.' },
-  { id: 'signature', name: 'Signature Package', lo: 180, hi: 260, mins: 210, side: 'both', featured: true,
-    blurb: 'Everything in Fresh Start plus pre-wash, door jambs, deep wheel clean, steam, air blowout and deep interior clean.' }
+  { id: 'signature', name: 'Signature Package', lo: 180, hi: 260, mins: 210, side: 'both', featured: true, includes: ['wax'],
+    blurb: 'Everything in Fresh Start plus pre-wash, door jambs, deep wheel clean, steam, air blowout, deep interior clean and spray wax sealant.' }
 ];
 
 // plus: true means the price can go up from there ("$40+")
@@ -43,6 +43,7 @@ export const ADDONS = [
 ];
 
 export function addonFits(addon, pkg) {
+  if ((pkg.includes || []).includes(addon.id)) return false; // already part of the package
   return pkg.side === 'both' || addon.side === pkg.side;
 }
 
