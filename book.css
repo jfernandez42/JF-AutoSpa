@@ -245,3 +245,7 @@
 .ad-text b { font-size: .875rem; }
 .ad-text span { font-size: .8125rem; color: var(--muted); line-height: 1.4; }
 .ad-text.is-top { border-color: var(--amber); background: #fffaf0; }
+.bk-special textarea { width: 100%; font: inherit; font-size: 1rem; padding: .75em .85em; border: 1.5px solid var(--line); border-radius: 12px; background: var(--white); resize: vertical; }
+.bk-special textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(242,178,76,.45); }
+.bk-special { margin-bottom: 8px; }
+.ad-req { color: #6b4300 !important; font-weight: 700; }

@@ -12,8 +12,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261112c">
-  <link rel="stylesheet" href="book.css?v=20261124">
+  <link rel="stylesheet" href="styles.css?v=20261125">
+  <link rel="stylesheet" href="book.css?v=20261125">
 </head>
 <body class="bk-body">
 
@@ -52,6 +52,11 @@
         <div id="addon-wrap" hidden>
           <h2 class="bk-h2-gap" id="addon-title">Add-ons <span class="bk-opt">(optional)</span></h2>
           <div id="addons"></div>
+        </div>
+        <div class="bk-special" id="special-wrap" hidden>
+          <h2 class="bk-h2-gap" id="special-title">What do you need?</h2>
+          <p class="bk-note" style="margin:0 0 10px">Describe the job, like vomit clean-up, mold, spilled paint or a part to install. We'll look at it and give you a price before we start. Photos help: text them to (516) 567-9885.</p>
+          <textarea id="special-text" rows="4" maxlength="600" placeholder="e.g. Kid got sick in the back seat, fabric seats, happened yesterday"></textarea>
         </div>
         <div class="bk-addcar" id="addcar-wrap" hidden>
           <button type="button" class="bk-addcar-btn" id="add-car">+ Add another car</button>
@@ -145,12 +150,13 @@
     var money = function (n) { return '$' + n.toLocaleString('en-US'); };
 
     var MAX_CARS = 4;
-    function sync() { S.cars[S.ci] = { pkg: S.pkg, addons: S.addons }; }
+    function sync() { S.cars[S.ci] = { pkg: S.pkg, addons: S.addons, request: (S.cars[S.ci] || {}).request || '' }; }
     function qCar(c) {
       var p = S.cat.packages.find(function (x) { return x.id === c.pkg; });
       if (!p) return null;
       var adds = c.addons.map(function (id) { return S.cat.addons.find(function (a) { return a.id === id; }); });
-      var r = { pkg: p, adds: adds, mins: p.mins, lo: p.lo, hi: p.hi, plus: false };
+      if (p.quote && !String(c.request || '').trim()) return null;   // special request needs a description
+      var r = { pkg: p, adds: adds, mins: p.mins, lo: p.lo, hi: p.hi, plus: false, quote: !!p.quote, request: p.quote ? String(c.request).trim() : '' };
       adds.forEach(function (a) { r.mins += a.mins; r.lo += a.lo; r.hi += a.hi; if (a.plus) r.plus = true; });
       return r;
     }
@@ -160,8 +166,8 @@
       sync();
       var cars = S.cars.map(qCar);
       if (!cars.length || cars.some(function (c) { return !c; })) return null;
-      var r = { cars: cars, pkg: cars[0].pkg, adds: cars[0].adds, mins: 0, lo: 0, hi: 0, plus: false };
-      cars.forEach(function (c) { r.mins += c.mins; r.lo += c.lo; r.hi += c.hi; if (c.plus) r.plus = true; });
+      var r = { cars: cars, pkg: cars[0].pkg, adds: cars[0].adds, mins: 0, lo: 0, hi: 0, plus: false, quote: false };
+      cars.forEach(function (c) { r.mins += c.mins; r.lo += c.lo; r.hi += c.hi; if (c.plus) r.plus = true; if (c.quote) r.quote = true; });
       return r;
     }
     function carsParam() { sync(); return S.cars.map(function (c) { return c.pkg + ':' + c.addons.join(','); }).join(';'); }
@@ -196,12 +202,15 @@
     });
     $('add-car').addEventListener('click', function () {
       sync(); if (S.cars.length >= MAX_CARS) return;
-      S.cars.push({ pkg: null, addons: [] }); resetTime();
+      S.cars.push({ pkg: null, addons: [], request: '' }); resetTime();
       selectCar(S.cars.length - 1);
       $('cars').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
     function dur(m) { var h = Math.floor(m / 60), r = m % 60; return (h ? h + ' hr' : '') + (h && r ? ' ' : '') + (r ? r + ' min' : ''); }
-    function price(r) { return (r.lo === r.hi ? money(r.lo) : money(r.lo) + '–' + money(r.hi)) + (r.plus ? '+' : ''); }
+    function price(r) {
+      if (r.quote && !r.lo && !r.hi) return 'Quote on site';
+      return (r.lo === r.hi ? money(r.lo) : money(r.lo) + '–' + money(r.hi)) + (r.plus ? '+' : '') + (r.quote ? ' + quote' : '');
+    }
     function fmtTime(hhmm) { var h = +hhmm.slice(0, 2), m = hhmm.slice(3); return ((h + 11) % 12 + 1) + ':' + m + (h < 12 ? ' AM' : ' PM'); }
     function dateObj(d) { var p = d.split('-'); return new Date(+p[0], p[1] - 1, +p[2]); }
     function fmtDate(d) { return dateObj(d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }); }
@@ -212,14 +221,19 @@
     function renderPkgs() {
       $('pkgs').innerHTML = S.cat.packages.map(function (p) {
         return '<label class="bk-pkg' + (p.featured ? ' is-feature' : '') + '"><input type="radio" name="pkg" value="' + p.id + '"' + (S.pkg === p.id ? ' checked' : '') + '>' +
-          '<span class="bk-pkg-top"><b>' + esc(p.name) + '</b><span class="bk-price">' + money(p.lo) + '–' + money(p.hi) + '</span></span>' +
-          '<span class="bk-pkg-meta">About ' + dur(p.mins) + (p.featured ? ' · Most complete' : '') + '</span>' +
+          '<span class="bk-pkg-top"><b>' + esc(p.name) + '</b><span class="bk-price">' + (p.quote ? 'Quote on site' : money(p.lo) + '–' + money(p.hi)) + '</span></span>' +
+          '<span class="bk-pkg-meta">' + (p.quote ? 'Priced after we see it' : 'About ' + dur(p.mins)) + (p.featured ? ' · Most complete' : '') + '</span>' +
           '<span class="bk-pkg-blurb">' + esc(p.blurb) + '</span></label>';
       }).join('');
     }
     function renderAddons() {
       var p = S.cat.packages.find(function (x) { return x.id === S.pkg; });
-      if (!p) { $('addon-wrap').hidden = true; return; }
+      $('special-wrap').hidden = !(p && p.quote);
+      if (p && p.quote) {
+        $('special-text').value = (S.cars[S.ci] || {}).request || '';
+        $('special-title').textContent = S.cars.length > 1 ? 'What do you need for Car ' + (S.ci + 1) + '?' : 'What do you need?';
+      }
+      if (!p || p.side === 'none') { S.addons = []; $('addon-wrap').hidden = true; return; }
       var fits = function (a) { return (p.includes || []).indexOf(a.id) < 0 && (p.side === 'both' || a.side === p.side); };
       S.addons = S.addons.filter(function (id) { return fits(S.cat.addons.find(function (a) { return a.id === id; })); });
       var groups = [['ext', 'Exterior'], ['int', 'Interior']].filter(function (g) { return p.side === 'both' || p.side === g[0]; });
@@ -233,6 +247,9 @@
       }).join('');
       $('addon-wrap').hidden = false;
     }
+    $('special-text').addEventListener('input', function () {
+      sync(); S.cars[S.ci].request = this.value; renderCars(); update();
+    });
     $('pkgs').addEventListener('change', function (e) {
       if (e.target.name !== 'pkg') return;
       S.pkg = e.target.value; renderAddons(); resetTime(); renderCars(); update();
@@ -346,8 +363,10 @@
       var rows = [
         r.cars.length > 1
           ? ['Cars', r.cars.map(function (c, i) { return '<b>Car ' + (i + 1) + ':</b> ' + esc(c.pkg.name) + ' · ' + esc(d.vehicles[i] || '') +
-              (c.adds.length ? '<br><small>+ ' + c.adds.map(function (a) { return esc(a.name); }).join(', ') + '</small>' : ''); }).join('<br>')]
-          : ['Service', esc(r.pkg.name) + (r.adds.length ? '<br><small>+ ' + r.adds.map(function (a) { return esc(a.name); }).join(', ') + '</small>' : '')],
+              (c.adds.length ? '<br><small>+ ' + c.adds.map(function (a) { return esc(a.name); }).join(', ') + '</small>' : '') +
+              (c.request ? '<br><small>“' + esc(c.request) + '”</small>' : ''); }).join('<br>')]
+          : ['Service', esc(r.pkg.name) + (r.adds.length ? '<br><small>+ ' + r.adds.map(function (a) { return esc(a.name); }).join(', ') + '</small>' : '') +
+              (r.cars[0].request ? '<br><small>“' + esc(r.cars[0].request) + '”</small>' : '')],
         ['When', fmtDate(date) + ' at ' + fmtTime(time)],
         ['Estimate', price(r) + ' <small>· about ' + dur(r.mins) + '</small>'],
         ['Where', esc(d.address) + ', ' + esc(d.zip) + '<br><small>' + esc(d.parking) + '</small>'],
@@ -373,7 +392,9 @@
         $('sum').innerHTML = '<b>' + (r.cars.length > 1 ? r.cars.length + ' cars' : esc(r.pkg.name)) + (nAdds ? ' + ' + nAdds + ' add-on' + (nAdds > 1 ? 's' : '') : '') + '</b>' +
           '<span>' + price(r) + (S.date && S.time && S.step > 1 ? ' · ' + dateObj(S.date).toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' }) + ' ' + fmtTime(S.time) : ' · about ' + dur(r.mins)) + '</span>';
       }
-      if (!r && S.cars.length > 1) $('sum').innerHTML = '<b>Car ' + (S.ci + 1) + ': choose a package</b><span>Every car needs a package.</span>';
+      var needsText = S.cars.some(function (c) { var p = S.cat && S.cat.packages.find(function (x) { return x.id === c.pkg; }); return p && p.quote && !String(c.request || '').trim(); });
+      if (!r && needsText) $('sum').innerHTML = '<b>Describe your special request</b><span>Tell us what you need so we can plan the visit.</span>';
+      else if (!r && S.cars.length > 1) $('sum').innerHTML = '<b>Car ' + (S.ci + 1) + ': choose a package</b><span>Every car needs a package.</span>';
       $('next').disabled = !canNext();
       $('next').textContent = S.step === 4 ? (S.sending ? 'Booking…' : 'Book it') : 'Continue';
       $('back').hidden = S.step === 1;
@@ -401,7 +422,7 @@
       S.sending = true; update();
       var d = details(), r = q();
       sync();
-      var body = Object.assign({}, d, { cars: S.cars.map(function (c) { return { pkg: c.pkg, addons: c.addons }; }), vehicles: d.vehicles, date: S.date, time: S.time });
+      var body = Object.assign({}, d, { cars: S.cars.map(function (c) { return { pkg: c.pkg, addons: c.addons, request: c.request || '' }; }), vehicles: d.vehicles, date: S.date, time: S.time });
       fetch(API + '/book', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
         .then(function (res) { return res.json().then(function (j) { return { status: res.status, j: j }; }); })
         .then(function (x) {
@@ -434,7 +455,7 @@
         _subject: 'New booking: ' + (r.cars.length > 1 ? r.cars.length + ' cars' : r.pkg.name) + ' – ' + fmtDate(S.date) + ' ' + fmtTime(S.time),
         _template: 'table', _captcha: 'false',
         Name: d.name, Phone: d.phone, When: fmtDate(S.date) + ' at ' + fmtTime(S.time),
-        Package: r.cars.map(function (c, i) { return (r.cars.length > 1 ? 'Car ' + (i + 1) + ': ' : '') + c.pkg.name + (c.adds.length ? ' + ' + c.adds.map(function (a) { return a.name; }).join(', ') : ''); }).join(' | '),
+        Package: r.cars.map(function (c, i) { return (r.cars.length > 1 ? 'Car ' + (i + 1) + ': ' : '') + c.pkg.name + (c.adds.length ? ' + ' + c.adds.map(function (a) { return a.name; }).join(', ') : '') + (c.request ? ' (' + c.request + ')' : ''); }).join(' | '),
         Estimate: price(r), 'Time needed': dur(r.mins), Address: d.address + ', ' + d.zip, Vehicle: d.vehicle,
         Parking: d.parking, Condition: d.condition, Notes: d.notes || '-'
       };

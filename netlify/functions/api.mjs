@@ -81,7 +81,15 @@ function quoteCars(cars) {
   const qs = cars.map(c => c && quote(c.pkg, c.addons));
   if (qs.some(x => !x)) return null;
   return { cars: qs, mins: qs.reduce((s, x) => s + x.mins, 0), lo: qs.reduce((s, x) => s + x.lo, 0),
-    hi: qs.reduce((s, x) => s + x.hi, 0), plus: qs.some(x => x.plus) };
+    hi: qs.reduce((s, x) => s + x.hi, 0), plus: qs.some(x => x.plus), quote: qs.some(x => x.quote) };
+}
+function priceText(e) {
+  if (e.quote && !e.lo && !e.hi) return 'Quote on site';
+  return `$${e.lo}–$${e.hi}${e.plus ? '+' : ''}${e.quote ? ' + quote' : ''}`;
+}
+function specialText(e) {
+  const r = e.cars ? e.cars.map((c, i) => c.request ? `Car ${i + 1}: ${c.request}` : '').filter(Boolean).join('; ') : (e.request || '');
+  return r ? 'Special request: ' + r : '';
 }
 function parseCarsParam(v) { // "signature:pet,wax;fresh:"
   return String(v || '').split(';').filter(Boolean).map(part => {
@@ -122,6 +130,8 @@ export default async (req) => {
       const address = clean(b.address, 160), zip = clean(b.zip, 10);
       const vehicles = q.cars.map((_, i) => clean(Array.isArray(b.vehicles) ? b.vehicles[i] : (i === 0 ? b.vehicle : ''), 100));
       const vehicle = vehicles.every(Boolean) ? vehicles.join(' · ') : '';
+      const requests = q.cars.map((c, i) => c.quote ? clean(Array.isArray(b.cars) ? (b.cars[i] || {}).request : b.request, 600) : '');
+      if (q.cars.some((c, i) => c.quote && !requests[i])) return json({ error: 'Please describe your special request.' }, 400);
       if (!name || phone.replace(/\D/g, '').length < 10 || !address || !/^\d{5}$/.test(zip) || !vehicle)
         return json({ error: 'Please fill in your name, phone, address, ZIP code and vehicle.' }, 400);
       if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return json({ error: 'That email address looks off.' }, 400);
@@ -133,8 +143,10 @@ export default async (req) => {
         addons: q.cars.length > 1 ? [] : q.cars[0].addons.map(a => a.id),
         addonNames: q.cars.length > 1 ? [] : q.cars[0].addons.map(a => a.name),
         cars: q.cars.length > 1 ? q.cars.map((c, i) => ({ pkg: c.pkg.id, pkgName: c.pkg.name, addons: c.addons.map(a => a.id),
-          addonNames: c.addons.map(a => a.name), vehicle: vehicles[i], lo: c.lo, hi: c.hi, plus: c.plus, mins: c.mins })) : undefined,
-        lo: q.lo, hi: q.hi, plus: q.plus,
+          addonNames: c.addons.map(a => a.name), vehicle: vehicles[i], lo: c.lo, hi: c.hi, plus: c.plus, mins: c.mins,
+          quote: c.quote || undefined, request: requests[i] || undefined })) : undefined,
+        request: q.cars.length > 1 ? undefined : (requests[0] || undefined),
+        lo: q.lo, hi: q.hi, plus: q.plus, quote: q.quote || undefined,
         name, phone, email, address, zip, vehicle,
         parking: clean(b.parking, 40), condition: clean(b.condition, 40), notes: cleanMulti(b.notes, 1000)
       };
@@ -147,9 +159,10 @@ export default async (req) => {
         title: `New booking: ${entry.pkgName}`,
         message: `${when(entry.date, entry.start)} · ${entry.name}\n${entry.address}, ${entry.zip}\n` +
           (entry.cars
-            ? entry.cars.map((c, i) => `Car ${i + 1}: ${c.pkgName}${c.addonNames.length ? ' + ' + c.addonNames.join(', ') : ''} · ${c.vehicle}`).join('\n') + '\n' +
-              `Est. $${entry.lo}–$${entry.hi}${entry.plus ? '+' : ''} total\n`
-            : (entry.addonNames.length ? `+ ${entry.addonNames.join(', ')}\n` : '') + `Est. $${entry.lo}–$${entry.hi}${entry.plus ? '+' : ''} · ${entry.vehicle}\n`) +
+            ? entry.cars.map((c, i) => `Car ${i + 1}: ${c.pkgName}${c.addonNames.length ? ' + ' + c.addonNames.join(', ') : ''} · ${c.vehicle}` +
+                (c.request ? `\n  Request: ${c.request}` : '')).join('\n') + '\n' + `Est. ${priceText(entry)} total\n`
+            : (entry.request ? `Request: ${entry.request}\n` : '') +
+              (entry.addonNames.length ? `+ ${entry.addonNames.join(', ')}\n` : '') + `Est. ${priceText(entry)} · ${entry.vehicle}\n`) +
           entry.phone
       });
       return json({ ok: true, booking: entry });
@@ -215,7 +228,7 @@ export default async (req) => {
             pkgName: e.pkgName, addonNames: e.cars ? e.cars.flatMap(c => c.addonNames) : (e.addonNames || []), paid: e.paid,
             vehicles: e.cars ? e.cars.map(c => c.vehicle).filter(Boolean) : (e.vehicle ? [e.vehicle] : []), payMethod: e.payMethod, finalNote: e.finalNote || '',
             name: e.name, phone: e.phone, email: e.email || '', address: e.address || '', zip: e.zip || '', vehicle: e.vehicle || '',
-            notes: e.notes || '', source: e.source || 'website' }));
+            notes: [specialText(e), e.notes].filter(Boolean).join(' · '), source: e.source || 'website' }));
         return json({ jobs: done });
       }
 
@@ -255,7 +268,7 @@ export default async (req) => {
             if (body.price !== '' && body.price != null) {
               const pr = Math.round(Number(body.price) * 100) / 100;
               if (!isFinite(pr) || pr < 0) return { error: 'Check the price.', status: 400 };
-              e.lo = pr; e.hi = pr; e.plus = false;
+              e.lo = pr; e.hi = pr; e.plus = false; e.quote = undefined;
             }
             if (e.status === 'completed' && body.paid !== '' && body.paid != null) {
               const pd = Math.round(Number(body.paid) * 100) / 100;

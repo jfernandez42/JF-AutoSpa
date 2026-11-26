@@ -9,8 +9,8 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta name="theme-color" content="#000000">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261112c">
-  <link rel="stylesheet" href="book.css?v=20261124">
+  <link rel="stylesheet" href="styles.css?v=20261125">
+  <link rel="stylesheet" href="book.css?v=20261125">
 </head>
 <body class="bk-body" style="padding-bottom:40px">
   <header class="topbar bk-top">
@@ -341,7 +341,7 @@
 
     function completeForm(e) {
       return '<form class="ad-done-form" data-complete="' + e.id + '">' +
-        '<div class="ad-row"><div class="field"><label>Amount paid</label><input name="amount" inputmode="decimal" placeholder="Estimate $' + e.lo + '–$' + e.hi + '" required></div></div>' +
+        '<div class="ad-row"><div class="field"><label>Amount paid</label><input name="amount" inputmode="decimal" placeholder="' + (e.quote ? 'Price you quoted' : 'Estimate $' + e.lo + '–$' + e.hi) + '" required></div></div>' +
         '<div class="ad-days ad-pay">' + ['Cash', 'Venmo', 'Zelle', 'Card'].map(function (m, i) {
           return '<label><input type="radio" name="method" value="' + m + '"' + (i === 0 ? ' checked' : '') + '><span>' + m + '</span></label>'; }).join('') + '</div>' +
         '<div class="field"><label>Note <span class="bk-opt">(optional)</span></label><input name="note" placeholder="e.g. added pet hair, $20 tip"></div>' +
@@ -373,9 +373,11 @@
           '<span class="ad-time">' + t12(e.start) + '–' + t12(e.end) + '</span></div>' +
           (done ? '<p class="ad-paid">✓ Completed · ' + money(e.paid || 0) + ' · ' + esc(e.payMethod || '') + (e.finalNote ? '<br><span>' + esc(e.finalNote) + '</span>' : '') + '</p>' : '') +
           (overdue ? '<p class="ad-overdue">Not marked complete yet</p>' : '') +
-          (e.cars ? e.cars.map(function (c, i) { return '<p class="ad-car"><strong>Car ' + (i + 1) + ': ' + esc(c.pkgName) + '</strong>' + (c.addonNames.length ? ' + ' + esc(c.addonNames.join(', ')) : '') + '<br>' + esc(c.vehicle || '') + '</p>'; }).join('') : '') +
+          (e.cars ? e.cars.map(function (c, i) { return '<p class="ad-car"><strong>Car ' + (i + 1) + ': ' + esc(c.pkgName) + '</strong>' + (c.addonNames.length ? ' + ' + esc(c.addonNames.join(', ')) : '') + '<br>' + esc(c.vehicle || '') +
+            (c.request ? '<br><span class="ad-req">Request: ' + esc(c.request) + '</span>' : '') + '</p>'; }).join('') : '') +
+          (e.request ? '<p class="ad-req">Request: ' + esc(e.request) + '</p>' : '') +
           '<p><strong>' + esc(e.cars ? e.cars.length + ' cars · total' : e.pkgName) + '</strong>' + (!e.cars && e.addonNames && e.addonNames.length ? ' + ' + esc(e.addonNames.join(', ')) : '') +
-          ' · <strong>' + (e.lo === e.hi ? money(e.lo) : '$' + e.lo + '–$' + e.hi) + (e.plus ? '+' : '') + '</strong>' + (e.source === 'manual' ? ' <span class="ad-tag">Added by you</span>' : '') + '</p>' +
+          ' · <strong>' + (e.quote && !e.lo && !e.hi ? 'Quote on site' : (e.lo === e.hi ? money(e.lo) : '$' + e.lo + '–$' + e.hi) + (e.plus ? '+' : '') + (e.quote ? ' + quote' : '')) + '</strong>' + (e.source === 'manual' ? ' <span class="ad-tag">Added by you</span>' : '') + '</p>' +
           (e.vehicle || e.parking || e.condition ? '<p>' + [e.cars ? '' : esc(e.vehicle), esc(e.parking), e.condition ? 'Inside: ' + esc(e.condition) : ''].filter(Boolean).join(' · ') + '</p>' : '') +
           (e.address || e.zip ? '<p>' + esc([e.address, e.zip].filter(Boolean).join(', ')) + '</p>' : '') +
           (e.notes ? '<p>Notes: ' + esc(e.notes) + '</p>' : '') +
