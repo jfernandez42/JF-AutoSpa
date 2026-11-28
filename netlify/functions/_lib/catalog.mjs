@@ -21,7 +21,7 @@ export const PACKAGES = [
     blurb: 'Vacuum, wipe-down, streak-free interior windows.' },
   { id: 'fresh', name: 'Fresh Start', lo: 100, hi: 150, mins: 120, side: 'both',
     blurb: 'Inside and out: hand wash, tire shine, vacuum, wipe-down, windows.' },
-  { id: 'signature', name: 'Signature Package', lo: 180, hi: 260, mins: 210, side: 'both', featured: true, includes: ['wax'],
+  { id: 'signature', name: 'Signature Package', lo: 200, hi: 280, plus: true, mins: 210, side: 'both', featured: true, includes: ['wax'],
     blurb: 'Everything in Fresh Start plus pre-wash, door jambs, deep wheel clean, steam, air blowout, deep interior clean and spray wax sealant.' },
   // Priced after inspection. side 'none' = no add-ons; the customer must describe the job.
   { id: 'special', name: 'Special Request', lo: 0, hi: 0, mins: 120, side: 'none', quote: true,
@@ -67,7 +67,7 @@ export function quote(pkgId, addonIds) {
     mins: pkg.mins + addons.reduce((s, a) => s + a.mins, 0),
     lo: pkg.lo + addons.reduce((s, a) => s + a.lo, 0),
     hi: pkg.hi + addons.reduce((s, a) => s + a.hi, 0),
-    plus: addons.some(a => a.plus),
+    plus: !!pkg.plus || addons.some(a => a.plus),
     quote: !!pkg.quote
   };
 }

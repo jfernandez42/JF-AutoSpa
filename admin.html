@@ -300,7 +300,7 @@
     var catalog = null;
     function fillPkgs() {
       if (!catalog) return;
-      $('aj-pkg').innerHTML = catalog.packages.map(function (p) { return '<option value="' + p.id + '">' + esc(p.name) + ' ($' + p.lo + '–$' + p.hi + ')</option>'; }).join('') +
+      $('aj-pkg').innerHTML = catalog.packages.map(function (p) { return '<option value="' + p.id + '">' + esc(p.name) + ' ($' + p.lo + '–$' + p.hi + (p.plus ? '+' : '') + ')</option>'; }).join('') +
         '<option value="other">Other service…</option>';
       syncPkg();
     }

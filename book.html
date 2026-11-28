@@ -156,7 +156,7 @@
       if (!p) return null;
       var adds = c.addons.map(function (id) { return S.cat.addons.find(function (a) { return a.id === id; }); });
       if (p.quote && !String(c.request || '').trim()) return null;   // special request needs a description
-      var r = { pkg: p, adds: adds, mins: p.mins, lo: p.lo, hi: p.hi, plus: false, quote: !!p.quote, request: p.quote ? String(c.request).trim() : '' };
+      var r = { pkg: p, adds: adds, mins: p.mins, lo: p.lo, hi: p.hi, plus: !!p.plus, quote: !!p.quote, request: p.quote ? String(c.request).trim() : '' };
       adds.forEach(function (a) { r.mins += a.mins; r.lo += a.lo; r.hi += a.hi; if (a.plus) r.plus = true; });
       return r;
     }
@@ -221,7 +221,7 @@
     function renderPkgs() {
       $('pkgs').innerHTML = S.cat.packages.map(function (p) {
         return '<label class="bk-pkg' + (p.featured ? ' is-feature' : '') + '"><input type="radio" name="pkg" value="' + p.id + '"' + (S.pkg === p.id ? ' checked' : '') + '>' +
-          '<span class="bk-pkg-top"><b>' + esc(p.name) + '</b><span class="bk-price">' + (p.quote ? 'Quote on site' : money(p.lo) + '–' + money(p.hi)) + '</span></span>' +
+          '<span class="bk-pkg-top"><b>' + esc(p.name) + '</b><span class="bk-price">' + (p.quote ? 'Quote on site' : money(p.lo) + '–' + money(p.hi) + (p.plus ? '+' : '')) + '</span></span>' +
           '<span class="bk-pkg-meta">' + (p.quote ? 'Priced after we see it' : 'About ' + dur(p.mins)) + (p.featured ? ' · Most complete' : '') + '</span>' +
           '<span class="bk-pkg-blurb">' + esc(p.blurb) + '</span></label>';
       }).join('');

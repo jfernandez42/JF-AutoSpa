@@ -213,7 +213,7 @@ export default async (req) => {
           id: newId(), type: 'booking', source: 'manual', status: body.done ? 'completed' : 'booked', createdAt: new Date().toISOString(),
           date: body.date, start, end: Math.min(1440, start + mins),
           pkg: pkg ? pkg.id : 'other', pkgName: pkg ? pkg.name : (clean(body.service, 80) || 'Other service'), addons: [], addonNames: [],
-          lo: amount !== null ? amount : (pkg ? pkg.lo : 0), hi: amount !== null ? amount : (pkg ? pkg.hi : 0), plus: false,
+          lo: amount !== null ? amount : (pkg ? pkg.lo : 0), hi: amount !== null ? amount : (pkg ? pkg.hi : 0), plus: amount === null && pkg ? !!pkg.plus : false,
           name, phone: clean(body.phone, 30), email: clean(body.email, 120), address: clean(body.address, 160), zip: clean(body.zip, 10),
           vehicle: clean(body.vehicle, 100), parking: '', condition: '', notes: cleanMulti(body.notes, 1000)
         };
